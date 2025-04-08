@@ -6,27 +6,27 @@ n <- 100 # Taille des données
 s <- sample(n) # Vecteur aléatoire
 
 # Appels tests
-tri_fusion(s)
+merge_sort(s)
 heap_sort(s)
-tri_base(s)
-tri_fusion_Rcpp(s)
+radix_sort(s)
+merge_sort_Rcpp(s)
 heap_sort_Rcpp(s)
-tri_base_Rcpp(s)
+radix_sort_Rcpp(s)
 
 ################################################################################################
 # Fonction qui mesure le temps d'exécution d'un algorithme de tri
-one.simu <- function(n, type = "sample", func = "tri_fusion") {
+one.simu <- function(n, type = "sample", func = "merge_sort") {
   if (type == "sample") {
     v <- sample(n)
   } else {
     v <- n:1
   }
-  if (func == "tri_fusion") t <- system.time(tri_fusion(v))[[1]]
+  if (func == "merge_sort") t <- system.time(merge_sort(v))[[1]]
   if (func == "heap_sort") t <- system.time(heap_sort(v))[[1]]
-  if (func == "tri_base") t <- system.time(tri_base(v))[[1]]
-  if (func == "tri_fusion_Rcpp") t <- system.time(tri_fusion_Rcpp(v))[[1]]
+  if (func == "radix_sort") t <- system.time(radix_sort(v))[[1]]
+  if (func == "merge_sort_Rcpp") t <- system.time(merge_sort_Rcpp(v))[[1]]
   if (func == "heap_sort_Rcpp") t <- system.time(heap_sort_Rcpp(v))[[1]]
-  if (func == "tri_base_Rcpp") t <- system.time(tri_base_Rcpp(v))[[1]]
+  if (func == "radix_sort_Rcpp") t <- system.time(radix_sort_Rcpp(v))[[1]]
   return(t)
 }
 ################################################################################################
@@ -36,12 +36,12 @@ one.simu <- function(n, type = "sample", func = "tri_fusion") {
 ###########################################################
 
 n <- 10000
-one.simu(n, func = "tri_fusion")
+one.simu(n, func = "merge_sort")
 one.simu(n, func = "heap_sort")
-one.simu(n, func = "tri_base")
-one.simu(n, func = "tri_fusion_Rcpp")
+one.simu(n, func = "radix_sort")
+one.simu(n, func = "merge_sort_Rcpp")
 one.simu(n, func = "heap_sort_Rcpp")
-one.simu(n, func = "tri_base_Rcpp")
+one.simu(n, func = "radix_sort_Rcpp")
 
 #########################################################################
 ############# Simulation à taille fixe avec médianes ####################
@@ -56,27 +56,27 @@ time5 <- numeric(nbSimus)
 time6 <- numeric(nbSimus)
 
 for (i in 1:nbSimus) {
-  time1[i] <- one.simu(n, func = "tri_fusion")
+  time1[i] <- one.simu(n, func = "merge_sort")
   time2[i] <- one.simu(n, func = "heap_sort")
-  time3[i] <- one.simu(n, func = "tri_base")
-  time4[i] <- one.simu(n, func = "tri_fusion_Rcpp")
+  time3[i] <- one.simu(n, func = "radix_sort")
+  time4[i] <- one.simu(n, func = "merge_sort_Rcpp")
   time5[i] <- one.simu(n, func = "heap_sort_Rcpp")
-  time6[i] <- one.simu(n, func = "tri_base_Rcpp")
+  time6[i] <- one.simu(n, func = "radix_sort_Rcpp")
 }
 
 # Gains avec médianes
-median(time1) / median(time4)  # R → Rcpp (fusion)
+median(time1) / median(time4)  # R → Rcpp (merge)
 median(time2) / median(time5)  # R → Rcpp (heap)
-median(time3) / median(time6)  # R → Rcpp (base)
+median(time3) / median(time6)  # R → Rcpp (radix)
 
-#time1 / time2  # fusion vs heap
-#time4 / time5  # fusion Rcpp vs heap Rcpp
+#time1 / time2  # merge vs heap
+#time4 / time5  # merge Rcpp vs heap Rcpp
 
-#time1 / time3  # fusion vs base
-#time4 / time6  # fusion Rcpp vs base Rcpp
+#time1 / time3  # merge vs radix
+#time4 / time6  # merge Rcpp vs radix Rcpp
 
-#time3 / time2  # base vs heap
-#time6 / time5  # base Rcpp vs heap Rcpp
+#time3 / time2  # radix vs heap
+#time6 / time5  # radix Rcpp vs heap Rcpp
 
 ##########################################
 ############# microbenchmark #############
@@ -87,9 +87,9 @@ library(ggplot2)
 
 n <- 10000
 res <- microbenchmark(
-  one.simu(n, func = "tri_fusion_Rcpp"),
+  one.simu(n, func = "merge_sort_Rcpp"),
   one.simu(n, func = "heap_sort_Rcpp"),
-  one.simu(n, func = "tri_base_Rcpp"),
+  one.simu(n, func = "radix_sort_Rcpp"),
   times = 50
 )
 autoplot(res) + ggtitle("Microbenchmark des algorithmes de tri (R & Rcpp)")
@@ -103,16 +103,16 @@ nbSimus <- 30
 vector_n <- seq(from = 5000, to = 50000, length.out = nbSimus)
 nbRep <- 10
 
-# Fusion Rcpp
-res_fusion <- data.frame(matrix(0, nbSimus, nbRep + 1))
-colnames(res_fusion) <- c("n", paste0("Rep",1:nbRep))
+# merge Rcpp
+res_merge <- data.frame(matrix(0, nbSimus, nbRep + 1))
+colnames(res_merge) <- c("n", paste0("Rep",1:nbRep))
 for (j in 1:nbSimus) {
   n_val <- vector_n[j]
-  res_fusion[j,] <- c(n_val, replicate(nbRep, one.simu(n_val, func = "tri_fusion_Rcpp")))
+  res_merge[j,] <- c(n_val, replicate(nbRep, one.simu(n_val, func = "merge_sort_Rcpp")))
   print(j)
 }
-res <- apply(res_fusion[,-1], 1, median)
-plot(vector_n, res, xlab = "Taille des données", ylab = "Temps (s)", main = "Complexité temporelle : tri_fusion_Rcpp")
+res <- apply(res_merge[,-1], 1, median)
+plot(vector_n, res, xlab = "Taille des données", ylab = "Temps (s)", main = "Complexité temporelle : merge_sort_Rcpp")
 lm(log(res) ~ log(vector_n))
 
 # Heap Rcpp
@@ -127,16 +127,16 @@ res <- apply(res_heap[,-1], 1, median)
 plot(vector_n, res, xlab = "Taille des données", ylab = "Temps (s)", main = "Complexité temporelle : heap_sort_Rcpp")
 lm(log(res) ~ log(vector_n))
 
-# Base Rcpp
-res_base_rcpp <- data.frame(matrix(0, nbSimus, nbRep + 1))
-colnames(res_base_rcpp) <- c("n", paste0("Rep",1:nbRep))
+# radix Rcpp
+res_radix_rcpp <- data.frame(matrix(0, nbSimus, nbRep + 1))
+colnames(res_radix_rcpp) <- c("n", paste0("Rep",1:nbRep))
 for (j in 1:nbSimus) {
   n_val <- vector_n[j]
-  res_base_rcpp[j,] <- c(n_val, replicate(nbRep, one.simu(n_val, func = "tri_base_Rcpp")))
+  res_radix_rcpp[j,] <- c(n_val, replicate(nbRep, one.simu(n_val, func = "radix_sort_Rcpp")))
   print(j)
 }
-res <- apply(res_base_rcpp[,-1], 1, median)
-plot(vector_n, res, xlab = "Taille des données", ylab = "Temps (s)", main = "Complexité temporelle : tri_base_Rcpp")
+res <- apply(res_radix_rcpp[,-1], 1, median)
+plot(vector_n, res, xlab = "Taille des données", ylab = "Temps (s)", main = "Complexité temporelle : radix_sort_Rcpp")
 lm(log(res) ~ log(vector_n))
 
 ##########################################
@@ -144,29 +144,29 @@ lm(log(res) ~ log(vector_n))
 ##########################################
 
 # Init
-res_fusion_R <- data.frame(matrix(0, nbSimus, nbRep + 1))
+res_merge_R <- data.frame(matrix(0, nbSimus, nbRep + 1))
 res_heap_R   <- data.frame(matrix(0, nbSimus, nbRep + 1))
-res_base_R   <- data.frame(matrix(0, nbSimus, nbRep + 1))
-colnames(res_fusion_R) <- colnames(res_heap_R) <- colnames(res_base_R) <- c("n", paste0("Rep",1:nbRep))
+res_radix_R   <- data.frame(matrix(0, nbSimus, nbRep + 1))
+colnames(res_merge_R) <- colnames(res_heap_R) <- colnames(res_radix_R) <- c("n", paste0("Rep",1:nbRep))
 
 # Boucle pour R
 for (j in 1:nbSimus) {
   n_val <- vector_n[j]
-  res_fusion_R[j,] <- c(n_val, replicate(nbRep, one.simu(n_val, func = "tri_fusion")))
+  res_merge_R[j,] <- c(n_val, replicate(nbRep, one.simu(n_val, func = "merge_sort")))
   res_heap_R[j,]   <- c(n_val, replicate(nbRep, one.simu(n_val, func = "heap_sort")))
-  res_base_R[j,]   <- c(n_val, replicate(nbRep, one.simu(n_val, func = "tri_base")))
+  res_radix_R[j,]   <- c(n_val, replicate(nbRep, one.simu(n_val, func = "radix_sort")))
   print(paste("R:", j))
 }
 
 # Médianes
 df_compar <- data.frame(
   n = vector_n,
-  fusion_R = apply(res_fusion_R[,-1], 1, median),
-  fusion_Rcpp = apply(res_fusion[,-1], 1, median),
+  merge_R = apply(res_merge_R[,-1], 1, median),
+  merge_Rcpp = apply(res_merge[,-1], 1, median),
   heap_R = apply(res_heap_R[,-1], 1, median),
   heap_Rcpp = apply(res_heap[,-1], 1, median),
-  base_R = apply(res_base_R[,-1], 1, median),
-  base_Rcpp = apply(res_base_rcpp[,-1], 1, median)
+  radix_R = apply(res_radix_R[,-1], 1, median),
+  radix_Rcpp = apply(res_radix_rcpp[,-1], 1, median)
 )
 
 # ggplot
@@ -184,17 +184,17 @@ ggplot(df_long, aes(x = n, y = temps, color = algo)) +
 library(tidyr)
 library(ggplot2)
 
-# Comparaison pour l'algorithme de fusion
-df_fusion <- data.frame(
+# Comparaison pour l'algorithme de merge
+df_merge <- data.frame(
   n = vector_n,
-  fusion_R = apply(res_fusion_R[,-1], 1, median),
-  fusion_Rcpp = apply(res_fusion[,-1], 1, median)
+  merge_R = apply(res_merge_R[,-1], 1, median),
+  merge_Rcpp = apply(res_merge[,-1], 1, median)
 )
-df_fusion_long <- pivot_longer(df_fusion, cols = -n, names_to = "algo", values_to = "temps")
+df_merge_long <- pivot_longer(df_merge, cols = -n, names_to = "algo", values_to = "temps")
 
-ggplot(df_fusion_long, aes(x = n, y = temps, color = algo)) +
+ggplot(df_merge_long, aes(x = n, y = temps, color = algo)) +
   geom_line(size = 1) +
-  labs(title = "Comparaison R vs Rcpp - Tri Fusion",
+  labs(title = "Comparaison R vs Rcpp - Tri merge",
        x = "Taille des données", y = "Temps (s)") +
   theme_minimal()
 
@@ -212,16 +212,16 @@ ggplot(df_heap_long, aes(x = n, y = temps, color = algo)) +
        x = "Taille des données", y = "Temps (s)") +
   theme_minimal()
 
-# Comparaison pour l'algorithme de base
-df_base <- data.frame(
+# Comparaison pour l'algorithme de radix
+df_radix <- data.frame(
   n = vector_n,
-  base_R = apply(res_base_R[,-1], 1, median),
-  base_Rcpp = apply(res_base_rcpp[,-1], 1, median)
+  radix_R = apply(res_radix_R[,-1], 1, median),
+  radix_Rcpp = apply(res_radix_rcpp[,-1], 1, median)
 )
-df_base_long <- pivot_longer(df_base, cols = -n, names_to = "algo", values_to = "temps")
+df_radix_long <- pivot_longer(df_radix, cols = -n, names_to = "algo", values_to = "temps")
 
-ggplot(df_base_long, aes(x = n, y = temps, color = algo)) +
+ggplot(df_radix_long, aes(x = n, y = temps, color = algo)) +
   geom_line(size = 1) +
-  labs(title = "Comparaison R vs Rcpp - Tri Base",
+  labs(title = "Comparaison R vs Rcpp - Tri radix",
        x = "Taille des données", y = "Temps (s)") +
   theme_minimal()

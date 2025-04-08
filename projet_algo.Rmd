@@ -24,7 +24,7 @@ La solution naïve dans ce contexte consiste à utiliser des algorithmes de tri 
 
 - Quick Sort : Un algorithme de tri par partitionnement qui fonctionne en divisant le tableau en sous-tableaux et en triant récursivement ces sous-tableaux. Sa complexité moyenne est O(n log n), bien qu’il puisse se dégrader à O(n²) dans le pire cas (lorsque le pivot choisi est défavorable).
 
-- Merge Sort : Un algorithme de tri par fusion qui divise le tableau en deux parties, trie chacune d'elles, puis fusionne les sous-tableaux triés. Il est stable et garanti d'avoir une complexité de O(n log n) dans tous les cas, ce qui le rend plus fiable que Quick Sort.
+- Merge Sort : Un algorithme de tri par merge qui divise le tableau en deux parties, trie chacune d'elles, puis mergene les sous-tableaux triés. Il est stable et garanti d'avoir une complexité de O(n log n) dans tous les cas, ce qui le rend plus fiable que Quick Sort.
 
 - Heap Sort : Un algorithme de tri basé sur une structure de données appelée "tas" (heap). Il permet de trier les éléments en O(n log n) dans tous les cas, mais il n'est pas stable (il ne conserve pas l'ordre relatif des éléments égaux).
 
@@ -39,7 +39,7 @@ Ces trois algorithmes sont des choix naturels pour un tri efficace basé sur des
 one.simu_rcpp <- function(n, k, type, func) {
   v <- generate_values(n, k)  # Valeurs avec n éléments et k chiffres
   if (func == "quick_sort_Rcpp") t <- system.time(quick_sort_Rcpp(v))[[1]]
-  if (func == "tri_base_Rcpp") t <- system.time(tri_base_Rcpp(v))[[1]]
+  if (func == "radix_sort_Rcpp") t <- system.time(radix_sort_Rcpp(v))[[1]]
   
   return(t)
 }
@@ -48,12 +48,12 @@ nbSimus <- 10  # Le nombre de simulations
 vector_n <- seq(from = 100, to = 50100, length.out = nbSimus)
 
 
-# Fusion Rcpp
-res_fusion <- data.frame(matrix(0, nbSimus, 2))
-colnames(res_fusion) <- c("n", "Time")
+# merge Rcpp
+res_merge <- data.frame(matrix(0, nbSimus, 2))
+colnames(res_merge) <- c("n", "Time")
 for (j in 1:nbSimus) {
   n_val <- vector_n[j]
-  res_fusion[j,] <- c(n_val, one.simu(n_val, func = "tri_fusion_Rcpp"))
+  res_merge[j,] <- c(n_val, one.simu(n_val, func = "merge_sort_Rcpp"))
 }
 
 # Heap Rcpp
@@ -73,15 +73,15 @@ for (j in 1:nbSimus) {
 }
 
 # Init pour R
-res_fusion_R <- data.frame(matrix(0, nbSimus, 2))
+res_merge_R <- data.frame(matrix(0, nbSimus, 2))
 res_heap_R   <- data.frame(matrix(0, nbSimus, 2))
 res_quick_R  <- data.frame(matrix(0, nbSimus, 2))
-colnames(res_fusion_R) <- colnames(res_heap_R) <- colnames(res_quick_R) <- c("n", "Time")
+colnames(res_merge_R) <- colnames(res_heap_R) <- colnames(res_quick_R) <- c("n", "Time")
 
 # Boucle pour R
 for (j in 1:nbSimus) {
   n_val <- vector_n[j]
-  res_fusion_R[j,] <- c(n_val, one.simu(n_val, func = "tri_fusion"))
+  res_merge_R[j,] <- c(n_val, one.simu(n_val, func = "merge_sort"))
   res_heap_R[j,]   <- c(n_val, one.simu(n_val, func = "heap_sort"))
   res_quick_R[j,]  <- c(n_val, one.simu(n_val, func = "quick_sort"))
 }
@@ -89,8 +89,8 @@ for (j in 1:nbSimus) {
 # Création du dataframe de comparaison avec les résultats
 df_compar <- data.frame(
   n = vector_n,
-  fusion_R = res_fusion_R$Time,
-  fusion_Rcpp = res_fusion$Time,
+  merge_R = res_merge_R$Time,
+  merge_Rcpp = res_merge$Time,
   heap_R = res_heap_R$Time,
   heap_Rcpp = res_heap$Time,
   quick_R = res_quick_R$Time,
@@ -102,17 +102,17 @@ library(tidyr)
 df_long <- pivot_longer(df_compar, cols = -n, names_to = "algo", values_to = "temps")
 
 
-# Comparaison spécifique pour l'algorithme de tri fusion
-df_fusion <- data.frame(
+# Comparaison spécifique pour l'algorithme de tri merge
+df_merge <- data.frame(
   n = vector_n,
-  fusion_R = res_fusion_R$Time,
-  fusion_Rcpp = res_fusion$Time
+  merge_R = res_merge_R$Time,
+  merge_Rcpp = res_merge$Time
 )
-df_fusion_long <- pivot_longer(df_fusion, cols = -n, names_to = "algo", values_to = "temps")
+df_merge_long <- pivot_longer(df_merge, cols = -n, names_to = "algo", values_to = "temps")
 
-ggplot(df_fusion_long, aes(x = n, y = temps, color = algo)) +
+ggplot(df_merge_long, aes(x = n, y = temps, color = algo)) +
   geom_line(size = 1) +
-  labs(title = "Comparaison R vs Rcpp - Tri Fusion",
+  labs(title = "Comparaison R vs Rcpp - Tri merge",
        x = "Taille des données", y = "Temps (s)") +
   theme_minimal()
 
@@ -147,7 +147,7 @@ ggplot(df_quick_long, aes(x = n, y = temps, color = algo)) +
 # Calcul du ratio des temps R / Rcpp pour chaque algorithme
 df_compar_ratio <- data.frame(
   n = vector_n,
-  fusion_R_vs_Rcpp = res_fusion_R$Time / res_fusion$Time,
+  merge_R_vs_Rcpp = res_merge_R$Time / res_merge$Time,
   heap_R_vs_Rcpp = res_heap_R$Time / res_heap$Time,
   quick_R_vs_Rcpp = res_quick_R$Time / res_quick_rcpp$Time
 )
@@ -160,9 +160,9 @@ print(df_compar_ratio)
 
 
 
-Les résultats des simulations ont permis de comparer les performances de plusieurs algorithmes de tri en R et en C++ via Rcpp pour différentes tailles de données. Les tests ont été effectués avec les algorithmes **Tri Fusion**, **Heap Sort**, et **Quick Sort**.
+Les résultats des simulations ont permis de comparer les performances de plusieurs algorithmes de tri en R et en C++ via Rcpp pour différentes tailles de données. Les tests ont été effectués avec les algorithmes **Tri merge**, **Heap Sort**, et **Quick Sort**.
 
-**Tri Fusion** en R et C++ a montré une différence de performance notable, avec des temps de calcul qui étaient infiniment longs pour des petites tailles de données (100 éléments) en R, mais beaucoup plus rapides en C++ via Rcpp. Pour des tailles plus grandes, comme 5655 éléments, la version C++ était environ 26 fois plus rapide que la version R en termes de temps de traitement. À des tailles de données encore plus grandes (par exemple, 50 100 éléments), la version C++ a continué à surpasser la version R, avec un facteur de gain proche de 14x.
+**Tri merge** en R et C++ a montré une différence de performance notable, avec des temps de calcul qui étaient infiniment longs pour des petites tailles de données (100 éléments) en R, mais beaucoup plus rapides en C++ via Rcpp. Pour des tailles plus grandes, comme 5655 éléments, la version C++ était environ 26 fois plus rapide que la version R en termes de temps de traitement. À des tailles de données encore plus grandes (par exemple, 50 100 éléments), la version C++ a continué à surpasser la version R, avec un facteur de gain proche de 14x.
 
 **Heap Sort**, quant à lui, a également montré des améliorations de performance significatives en C++ comparé à R. À taille moyenne (par exemple, 5655 éléments), la version C++ était environ 27 fois plus rapide. Ce gain en efficacité était encore plus marqué pour des tailles plus importantes, comme 50 100 éléments, où la version C++ a été plus de 264 fois plus rapide que la version R.
 
@@ -177,7 +177,7 @@ En résumé, pour toutes les tailles de données testées, les versions en C++ v
 # Comparaison des algorithmes Rcpp entre eux
 df_rcpp_compar <- data.frame(
   n = vector_n,
-  fusion_Rcpp = res_fusion$Time,
+  merge_Rcpp = res_merge$Time,
   heap_Rcpp = res_heap$Time,
   quick_Rcpp = res_quick_rcpp$Time
 )
@@ -196,7 +196,7 @@ ggplot(df_rcpp_long, aes(x = n, y = temps, color = algo)) +
 
 ```
 
-En comparant les performances des algorithmes en C++ via **Rcpp**, il apparaît que **Quick Sort** est l'algorithme le plus performant parmi ceux testés, avec des temps d'exécution nettement plus courts que ceux de **Tri Fusion** et **Heap Sort**, même pour des tailles de données importantes. Cette efficacité supérieure fait de **Quick Sort** le choix optimal pour la suite de notre étude. Ainsi, nous comparerons notre algorithme amélioré avec **Quick Sort** pour évaluer son efficacité en termes de performance et de complexité temporelle.
+En comparant les performances des algorithmes en C++ via **Rcpp**, il apparaît que **Quick Sort** est l'algorithme le plus performant parmi ceux testés, avec des temps d'exécution nettement plus courts que ceux de **Tri merge** et **Heap Sort**, même pour des tailles de données importantes. Cette efficacité supérieure fait de **Quick Sort** le choix optimal pour la suite de notre étude. Ainsi, nous comparerons notre algorithme amélioré avec **Quick Sort** pour évaluer son efficacité en termes de performance et de complexité temporelle.
 
 
 
@@ -283,7 +283,7 @@ one.simu_rcpp <- function(n, type = "random", func = "quick_sort_Rcpp") {
   
   # Appel des fonctions de tri
   if (func == "quick_sort_Rcpp") t <- system.time(quick_sort_Rcpp(v))[[1]]
-  if (func == "tri_base_Rcpp") t <- system.time(tri_base_Rcpp(v))[[1]]
+  if (func == "radix_sort_Rcpp") t <- system.time(radix_sort_Rcpp(v))[[1]]
   
   return(t)
 }
@@ -309,7 +309,7 @@ for (dataset in datasets) {
   for (i in 1:nbSimus) {
     # Calculer la médiane des temps pour chaque algorithme sur chaque taille de n
     time1[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "quick_sort_Rcpp")))
-    time2[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "tri_base_Rcpp")))
+    time2[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "radix_sort_Rcpp")))
   }
   
   # Stocker les résultats dans une liste
@@ -377,7 +377,7 @@ res_base <- data.frame(matrix(0, nbSimus, 2))
 colnames(res_base) <- c("n", "Time")
 for (j in 1:nbSimus) {
   n_val <- vector_n[j]
-  res_base[j,] <- c(n_val, one.simu(n_val, func = "tri_base_Rcpp"))
+  res_base[j,] <- c(n_val, one.simu(n_val, func = "radix_sort_Rcpp"))
 }
 
 # Init pour R
@@ -387,7 +387,7 @@ colnames(res_base_R) <- c("n", "Time")
 # Boucle pour R
 for (j in 1:nbSimus) {
   n_val <- vector_n[j]
-  res_base_R[j,] <- c(n_val, one.simu(n_val, func = "tri_base"))
+  res_base_R[j,] <- c(n_val, one.simu(n_val, func = "radix_sort"))
 }
 
 # Création du dataframe de comparaison avec les résultats
@@ -416,7 +416,7 @@ ggplot(df_base_long, aes(x = n, y = temps, color = algo)) +
        x = "Taille des données", y = "Temps (s)") +
   theme_minimal()
 
-# Calcul du ratio des temps R / Rcpp pour l'algorithme tri_base
+# Calcul du ratio des temps R / Rcpp pour l'algorithme radix_sort
 df_compar_ratio <- data.frame(
   n = vector_n,
   base_R_vs_Rcpp = res_base_R$Time / res_base$Time
@@ -460,7 +460,7 @@ library(M2algorithmique)
 n <- 10^7
 vec <- sample(1:100, n, replace = TRUE)
 start_time <- Sys.time()
-sorted_fusion <- tri_fusion(vec)
+sorted_merge <- merge_sort(vec)
 end_time <- Sys.time()
 print(as.numeric(difftime(end_time, start_time, units = "secs")))
 ```
@@ -470,7 +470,7 @@ print(as.numeric(difftime(end_time, start_time, units = "secs")))
 n <- 10^9
 vec <- sample(1:100, n, replace = TRUE)
 start_time <- Sys.time()
-sorted_fusion <- tri_fusion_Rcpp(vec)
+sorted_merge <- merge_sort_Rcpp(vec)
 end_time <- Sys.time()
 print(as.numeric(difftime(end_time, start_time, units = "secs")))
 ```
@@ -485,17 +485,17 @@ set.seed(42)
 n <- 10000
 sizes <- seq(from = 100, to = n, length.out = 50)
 
-times_fusion <- numeric(length(sizes))
+times_merge <- numeric(length(sizes))
 times_radix <- numeric(length(sizes))
 
 for (i in seq_along(sizes)) {
   vec <- sample(1:100, sizes[i], replace = TRUE)
   
-  # Temps pour le tri fusion
+  # Temps pour le tri merge
   start_time <- Sys.time()
-  sorted_fusion <- tri_fusion(vec)
+  sorted_merge <- merge_sort(vec)
   end_time <- Sys.time()
-  times_fusion[i] <- as.numeric(difftime(end_time, start_time, units = "secs"))
+  times_merge[i] <- as.numeric(difftime(end_time, start_time, units = "secs"))
   
   # Temps pour le tri par quick
   start_time <- Sys.time()
@@ -505,13 +505,13 @@ for (i in seq_along(sizes)) {
 }
 
 # Tracer un graphique avec l'axe X en échelle logarithmique
-plot(sizes, times_fusion, type = "o", log = "x", col = "red", 
+plot(sizes, times_merge, type = "o", log = "x", col = "red", 
      xlab = "Taille du vecteur (log)", ylab = "Temps (s)", 
      main = "Comparaison des performances des algorithmes")
 
 
 lines(sizes, times_radix, type = "o", col = "blue", pch = 16)
-legend("topleft", legend = c("Tri fusion", "Tri par base"), col = c("red", "blue"), pch = 16)
+legend("topleft", legend = c("Tri merge", "Tri par base"), col = c("red", "blue"), pch = 16)
 
 ```
 
@@ -536,33 +536,33 @@ set.seed(42)
 n <- 100  # Taille des listes
 k_values <- 1:15  # Valeurs de k
 
-times_fusion <- numeric(length(k_values))
+times_merge <- numeric(length(k_values))
 times_radix <- numeric(length(k_values))
 
 for (k in k_values) {
   # Générer une liste d'entiers entre 0 et 10^k - 1
   vec <- sample((10^(k-1) - 1):(10^k - 1), n, replace = TRUE)
   
-  # Temps pour le tri fusion O(n log n)
+  # Temps pour le tri merge O(n log n)
   start_time <- Sys.time()
-  sorted_fusion <- tri_fusion(vec)
+  sorted_merge <- merge_sort(vec)
   end_time <- Sys.time()
-  times_fusion[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
+  times_merge[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
   
   # Temps pour le tri par base O(n k)
   start_time <- Sys.time()
-  sorted_radix <- tri_base(vec)
+  sorted_radix <- radix_sort(vec)
   end_time <- Sys.time()
   times_radix[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
 }
 
 # Tracer les performances
-plot(k_values, times_fusion, type = "o", col = "red", xlab = "Nombre de chiffres k", 
-     ylab = "Temps (s)", main = "Complexité des tris en fonction de k", pch = 16, ylim = range(c(times_fusion, times_radix)))
+plot(k_values, times_merge, type = "o", col = "red", xlab = "Nombre de chiffres k", 
+     ylab = "Temps (s)", main = "Complexité des tris en fonction de k", pch = 16, ylim = range(c(times_merge, times_radix)))
 
 lines(k_values, times_radix, type = "o", col = "blue", pch = 16)
 
-legend("topleft", legend = c("Tri fusion O(n log n)", "Tri par base O(n k)"), 
+legend("topleft", legend = c("Tri merge O(n log n)", "Tri par base O(n k)"), 
        col = c("red", "blue"), pch = 16)
 
 
@@ -574,33 +574,33 @@ set.seed(42)
 n <- 1000   # Taille des listes
 k_values <- 1:15  # Valeurs de k
 
-times_fusion <- numeric(length(k_values))
+times_merge <- numeric(length(k_values))
 times_radix <- numeric(length(k_values))
 
 for (k in k_values) {
   # Générer une liste d'entiers entre 0 et 10^k - 1
   vec <- sample((10^(k-1) - 1):(10^k - 1), n, replace = TRUE)
   
-  # Temps pour le tri fusion O(n log n)
+  # Temps pour le tri merge O(n log n)
   start_time <- Sys.time()
-  sorted_fusion <- tri_fusion(vec)
+  sorted_merge <- merge_sort(vec)
   end_time <- Sys.time()
-  times_fusion[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
+  times_merge[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
   
   # Temps pour le tri par base O(n k)
   start_time <- Sys.time()
-  sorted_radix <- tri_base(vec)
+  sorted_radix <- radix_sort(vec)
   end_time <- Sys.time()
   times_radix[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
 }
 
 # Tracer les performances
-plot(k_values, times_fusion, type = "o", col = "red", xlab = "Nombre de chiffres k", 
-     ylab = "Temps (s)", main = "Complexité des tris en fonction de k", pch = 16, ylim = range(c(times_fusion, times_radix)))
+plot(k_values, times_merge, type = "o", col = "red", xlab = "Nombre de chiffres k", 
+     ylab = "Temps (s)", main = "Complexité des tris en fonction de k", pch = 16, ylim = range(c(times_merge, times_radix)))
 
 lines(k_values, times_radix, type = "o", col = "blue", pch = 16)
 
-legend("topleft", legend = c("Tri fusion O(n log n)", "Tri par base O(n k)"), 
+legend("topleft", legend = c("Tri merge O(n log n)", "Tri par base O(n k)"), 
        col = c("red", "blue"), pch = 16)
 ```
 

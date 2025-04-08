@@ -1,2 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+forStudents
+myTests.R
+projet_algo.Rmd
+sort_algorithm_comparison.Rmd
+README_files
