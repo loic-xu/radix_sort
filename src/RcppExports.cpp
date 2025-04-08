@@ -10,17 +10,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// tri_fusion_Rcpp
-std::vector<double> tri_fusion_Rcpp(std::vector<double> v);
-RcppExport SEXP _M2algorithmique_tri_fusion_Rcpp(SEXP vSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double> >::type v(vSEXP);
-    rcpp_result_gen = Rcpp::wrap(tri_fusion_Rcpp(v));
-    return rcpp_result_gen;
-END_RCPP
-}
 // tri_base_Rcpp
 std::vector<int> tri_base_Rcpp(std::vector<int> v);
 RcppExport SEXP _M2algorithmique_tri_base_Rcpp(SEXP vSEXP) {
@@ -29,6 +18,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::vector<int> >::type v(vSEXP);
     rcpp_result_gen = Rcpp::wrap(tri_base_Rcpp(v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// quick_sort_Rcpp
+NumericVector quick_sort_Rcpp(NumericVector v);
+RcppExport SEXP _M2algorithmique_quick_sort_Rcpp(SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(quick_sort_Rcpp(v));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -56,24 +56,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// quick_sort_Rcpp
-NumericVector quick_sort_Rcpp(NumericVector v);
-RcppExport SEXP _M2algorithmique_quick_sort_Rcpp(SEXP vSEXP) {
+// tri_fusion_Rcpp
+std::vector<double> tri_fusion_Rcpp(std::vector<double> v);
+RcppExport SEXP _M2algorithmique_tri_fusion_Rcpp(SEXP vSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type v(vSEXP);
-    rcpp_result_gen = Rcpp::wrap(quick_sort_Rcpp(v));
+    Rcpp::traits::input_parameter< std::vector<double> >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(tri_fusion_Rcpp(v));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_M2algorithmique_tri_fusion_Rcpp", (DL_FUNC) &_M2algorithmique_tri_fusion_Rcpp, 1},
     {"_M2algorithmique_tri_base_Rcpp", (DL_FUNC) &_M2algorithmique_tri_base_Rcpp, 1},
+    {"_M2algorithmique_quick_sort_Rcpp", (DL_FUNC) &_M2algorithmique_quick_sort_Rcpp, 1},
     {"_M2algorithmique_build_heap_Rcpp", (DL_FUNC) &_M2algorithmique_build_heap_Rcpp, 3},
     {"_M2algorithmique_heap_sort_Rcpp", (DL_FUNC) &_M2algorithmique_heap_sort_Rcpp, 1},
-    {"_M2algorithmique_quick_sort_Rcpp", (DL_FUNC) &_M2algorithmique_quick_sort_Rcpp, 1},
+    {"_M2algorithmique_tri_fusion_Rcpp", (DL_FUNC) &_M2algorithmique_tri_fusion_Rcpp, 1},
     {NULL, NULL, 0}
 };
 

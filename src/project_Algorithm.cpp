@@ -4,68 +4,6 @@ using namespace Rcpp;
 #include <vector> // to use std::vector
 
 
-// ------------------------------
-// TRI FUSION (MERGE SORT)
-// ------------------------------
-
-/**
- * @brief Internal function that implements the merge sort algorithm.
- *
- * This function recursively splits a vector into halves, sorts each half,
- * and merges them in sorted order.
- *
- * @param v A numeric vector to sort.
- * @return A sorted numeric vector.
- */
-std::vector<double> tri_fusion(std::vector<double> v) {
-  if (v.size() <= 1) {
-    return v;
-  }
-  
-  size_t mid = v.size() / 2;
-  std::vector<double> left(v.begin(), v.begin() + mid);
-  std::vector<double> right(v.begin() + mid, v.end());
-  
-  left = tri_fusion(left);
-  right = tri_fusion(right);
-  
-  std::vector<double> result;
-  size_t i = 0, j = 0;
-  
-  // Merge the two sorted halves
-  while (i < left.size() && j < right.size()) {
-    if (left[i] <= right[j]) {
-      result.push_back(left[i]);
-      i++;
-    } else {
-      result.push_back(right[j]);
-      j++;
-    }
-  }
-  
-  // Append remaining elements
-  result.insert(result.end(), left.begin() + i, left.end());
-  result.insert(result.end(), right.begin() + j, right.end());
-  
-  return result;
-}
-
-
-//' Merge Sort Algorithm (C++)
- //'
- //' This function sorts a numeric vector using the merge sort algorithm,
- //' a classic divide-and-conquer algorithm with O(n log n) complexity.
- //'
- //' @param v A numeric vector to sort.
- //' @return A sorted numeric vector.
- //' @examples
- //' tri_fusion_Rcpp(c(3.4, 1.2, 5.6, 0.9))
- //' @export
- // [[Rcpp::export]]
- std::vector<double> tri_fusion_Rcpp(std::vector<double> v) {
-   return tri_fusion(v);
- }
-
 
 // ------------------------------
 // RADIX SORT
@@ -102,6 +40,7 @@ std::vector<int> radix_sort(std::vector<int> v, int exp) {
 }
 
 
+
 //' Radix Sort Algorithm (C++)
  //'
  //' This function sorts an integer vector using the radix sort algorithm,
@@ -127,3 +66,33 @@ std::vector<int> radix_sort(std::vector<int> v, int exp) {
    
    return radix_sort(v, exp);
  }
+
+
+// --------- QUICK SORT ----------
+
+void quick_sort_helper(std::vector<double>& arr, int left, int right) {
+  int i = left, j = right;
+  double pivot = arr[(left + right) / 2];
+  
+  while (i <= j) {
+    while (arr[i] < pivot) i++;
+    while (arr[j] > pivot) j--;
+    
+    if (i <= j) {
+      std::swap(arr[i], arr[j]);
+      i++;
+      j--;
+    }
+  }
+  
+  if (left < j) quick_sort_helper(arr, left, j);
+  if (i < right) quick_sort_helper(arr, i, right);
+}
+
+// [[Rcpp::export]]
+NumericVector quick_sort_Rcpp(NumericVector v) {
+  std::vector<double> vec = Rcpp::as<std::vector<double>>(v);
+  quick_sort_helper(vec, 0, vec.size() - 1);
+  return wrap(vec);
+}
+

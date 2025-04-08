@@ -97,25 +97,50 @@ build_heap_recursive <- function(heap, i, n)
 #########################################################
 #########################################################
 
-#' Quick sort algorithm
-#'
-#' @description Sorting using the divide-and-conquer strategy of quick sort.
-#' This is a simple and elegant recursive implementation.
-#'
-#' @param v An unsorted numeric vector.
-#' @return The sorted vector.
-#' @examples
-#' quick_sort(c(4.2, 1.1, 3.9, 2.5))
-#' @export
-quick_sort <- function(v) {
-  if (length(v) <= 1) {
-    return(v)
+
+
+##### Merge sort
+tri_fusion <- function(vec) {
+  if (length(vec) <= 1) {
+    return(vec)
   }
   
-  pivot <- v[1]
-  left <- v[v < pivot]
-  middle <- v[v == pivot]
-  right <- v[v > pivot]
+  mid <- floor(length(vec) / 2)
   
-  c(quick_sort(left), middle, quick_sort(right))
+  left <- tri_fusion(vec[1:mid])
+  right <- tri_fusion(vec[(mid + 1):length(vec)])
+  
+  return(merge(left, right))
 }
+
+merge <- function(left, right) {
+  n_left <- length(left)
+  n_right <- length(right)
+  
+  result <- numeric(n_left + n_right)
+  i <- 1
+  j <- 1
+  k <- 1
+  
+  while (i <= n_left && j <= n_right) {
+    if (left[i] <= right[j]) {
+      result[k] <- left[i]
+      i <- i + 1
+    } else {
+      result[k] <- right[j]
+      j <- j + 1
+    }
+    k <- k + 1
+  }
+  
+  
+  if (i <= n_left) {
+    result[k:(n_left + n_right)] <- left[i:n_left]
+  }
+  if (j <= n_right) {
+    result[k:(n_left + n_right)] <- right[j:n_right]
+  }
+  
+  return(result)
+}
+

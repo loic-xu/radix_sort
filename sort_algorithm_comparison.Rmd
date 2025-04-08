@@ -6,218 +6,11 @@ date: "2025-04-07"
 
 
 
-# Naive 2 
-
-```{r}
-
-################################################
-############# Setup & Données ##################
-################################################
-
-# Définir différentes tailles de n pour tester
-vector_n <- seq(100, 50100, by = 5000)  # Tester de 100 à 50000 avec un pas de 5000
-k <- 3  # Exemple de nombre de chiffres (k = 3 : valeurs entre 100 et 999)
-
-# Types de données à tester
-datasets <- c("random", "sorted", "reverse_sorted", "sorted_90", "sorted_50")
-
-# Fonction qui génère des nombres selon le nombre de chiffres (k)
-generate_values <- function(n, k) {
-  min_value <- 1  # Le minimum possible pour k chiffres (par exemple, 100 pour k=3)
-  max_value <- 10^k - 1  # Le maximum possible pour k chiffres (par exemple, 999 pour k=3)
-  return(sample(min_value:max_value, n, replace = TRUE))  # Génère des valeurs entre min_value et max_value
-}
-
-# Fonction qui mesure le temps d'exécution des algorithmes Rcpp de tri
-one.simu_rcpp <- function(n, type = "sample", func = "tri_fusion_Rcpp") {
-  
-  # Génération des datasets selon l'intervalle défini par k
-  if (type == "random") {
-    v <- generate_values(n, k)  # Valeurs avec n éléments et k chiffres
-  } else if (type == "sorted") {
-    v <- sort(generate_values(n, k))  # Triées croissantes
-  } else if (type == "reverse_sorted") {
-    v <- sort(generate_values(n, k), decreasing = TRUE)  # Triées décroissantes
-  } else if (type == "sorted_90") {
-    # Générer 90% triées et 10% aléatoires
-    sorted_part <- sort(generate_values(0.9 * n, k))  # 90% triées
-    random_part <- generate_values(0.1 * n, k)  # 10% aléatoires
-    v <- c(sorted_part, random_part)
-  } else if (type == "sorted_50") {
-    # Générer 50% triées et 50% aléatoires
-    sorted_part <- sort(generate_values(0.5 * n, k))  # 50% triées
-    random_part <- generate_values(0.5 * n, k)  # 50% aléatoires
-    v <- c(sorted_part, random_part)
-  }
-  
-  # Appel des fonctions de tri
-  if (func == "tri_fusion_Rcpp") t <- system.time(tri_fusion_Rcpp(v))[[1]]
-  if (func == "heap_sort_Rcpp") t <- system.time(heap_sort_Rcpp(v))[[1]]
-  if (func == "tri_base_Rcpp") t <- system.time(tri_base_Rcpp(v))[[1]]
-  
-  return(t)
-}
-
-################################################################################################
-
-###########################################################
-############# Simulation à taille variable ##################
-###########################################################
-
-nbSimus <- length(vector_n)  # Le nombre de tailles de données testées
-
-# Initialiser une liste pour stocker les résultats
-results_list <- list()
-
-# Simulations pour chaque type de dataset
-for (dataset in datasets) {
-  # Init des vecteurs pour stocker les temps
-  time1 <- numeric(nbSimus)
-  time2 <- numeric(nbSimus)
-  time3 <- numeric(nbSimus)
-
-  # Simulations pour chaque taille de n
-  for (i in 1:nbSimus) {
-    # Calculer la médiane des temps pour chaque algorithme sur chaque taille de n
-    time1[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "tri_fusion_Rcpp")))
-    time2[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "heap_sort_Rcpp")))
-    time3[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "tri_base_Rcpp")))
-  }
-
-  # Stocker les résultats dans une liste
-  results_list[[dataset]] <- data.frame(
-    n = vector_n,
-    fusion_Rcpp = time1,
-    heap_Rcpp = time2,
-    base_Rcpp = time3
-  )
-}
-
-# ggplot pour afficher le graphique dans RStudio
-library(ggplot2)
-library(tidyr)
-
-# Transformer les résultats en format long
-df_long_list <- lapply(names(results_list), function(dataset) {
-  df_compar_rcpp <- results_list[[dataset]]
-  df_compar_rcpp$dataset <- dataset  # Ajouter une colonne pour le dataset
-  pivot_longer(df_compar_rcpp, cols = -c(n, dataset), names_to = "algo", values_to = "temps")
-})
-
-# Combiner tous les résultats dans un seul dataframe
-df_long_all <- do.call(rbind, df_long_list)
-
-# Graphiques pour chaque dataset
-ggplot(df_long_all, aes(x = n, y = temps, color = algo, group = algo)) +
-  geom_line(linewidth = 1) +
-  facet_wrap(~dataset) +  # Créer un graphique pour chaque dataset
-  labs(title = "Comparaison des algorithmes Rcpp",
-       x = "Taille des données", y = "Temps (s)") +
-  theme_minimal() + 
-  theme(legend.position = "bottom")
-
-
-```
-
-
-
-
-
-## QUE RANDOM
-```{r}
-
-################################################
-############# Setup & Données ##################
-################################################
-
-# Définir différentes tailles de n pour tester
-vector_n <- seq(100, 50100, by = 5000)  # Tester de 100 à 50000 avec un pas de 5000
-k <- 3  # Exemple de nombre de chiffres (k = 3 : valeurs entre 100 et 999)
-
-# Fonction qui génère des nombres selon le nombre de chiffres (k)
-generate_values <- function(n, k) {
-  min_value <- 1  # Le minimum possible pour k chiffres (par exemple, 100 pour k=3)
-  max_value <- 10^k - 1  # Le maximum possible pour k chiffres (par exemple, 999 pour k=3)
-  return(sample(min_value:max_value, n, replace = TRUE))  # Génère des valeurs entre min_value et max_value
-}
-
-# Fonction qui mesure le temps d'exécution des algorithmes Rcpp de tri
-one.simu_rcpp <- function(n, type = "random", func = "tri_fusion_Rcpp") {
-  
-  # Génération des datasets selon l'intervalle défini par k
-  if (type == "random") {
-    v <- generate_values(n, k)  # Valeurs avec n éléments et k chiffres
-  }
-  
-  # Appel des fonctions de tri
-  if (func == "tri_fusion_Rcpp") t <- system.time(tri_fusion_Rcpp(v))[[1]]
-  if (func == "heap_sort_Rcpp") t <- system.time(heap_sort_Rcpp(v))[[1]]
-  if (func == "tri_base_Rcpp") t <- system.time(tri_base_Rcpp(v))[[1]]
-  
-  return(t)
-}
-
-################################################################################################
-
-###########################################################
-############# Simulation à taille variable ##################
-###########################################################
-
-nbSimus <- length(vector_n)  # Le nombre de tailles de données testées
-
-# Initialiser une liste pour stocker les résultats
-results_list <- list()
-
-# Simulations pour le dataset "random" uniquement
-# Init des vecteurs pour stocker les temps
-time1 <- numeric(nbSimus)
-time2 <- numeric(nbSimus)
-time3 <- numeric(nbSimus)
-
-# Simulations pour chaque taille de n
-for (i in 1:nbSimus) {
-  # Calculer la médiane des temps pour chaque algorithme sur chaque taille de n
-  time1[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = "random", func = "tri_fusion_Rcpp")))
-  time2[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = "random", func = "heap_sort_Rcpp")))
-  time3[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = "random", func = "tri_base_Rcpp")))
-}
-
-# Stocker les résultats dans une liste
-results_list[["random"]] <- data.frame(
-  n = vector_n,
-  fusion_Rcpp = time1,
-  heap_Rcpp = time2,
-  base_Rcpp = time3
-)
-
-# ggplot pour afficher le graphique dans RStudio
-library(ggplot2)
-library(tidyr)
-
-# Transformer les résultats en format long
-df_compar_rcpp <- results_list[["random"]]
-df_compar_rcpp$dataset <- "random"  # Ajouter une colonne pour le dataset
-df_long <- pivot_longer(df_compar_rcpp, cols = -c(n, dataset), names_to = "algo", values_to = "temps")
-
-# Graphique pour le dataset "random"
-ggplot(df_long, aes(x = n, y = temps, color = algo, group = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison des algorithmes Rcpp (Dataset Random)",
-       x = "Taille des données", y = "Temps (s)") +
-  theme_minimal() + 
-  theme(legend.position = "bottom")
-
-
-
-
-```
-
-
-
 
 # Algorithme non naîf (k grand)
 
 ```{r}
+
 ################################################
 ############# Setup & Données ##################
 ################################################
@@ -232,17 +25,10 @@ generate_values <- function(n, k) {
   return(sample(min_value:max_value, n, replace = TRUE))  # Génère des valeurs entre min_value et max_value
 }
 
-# Fonction qui mesure le temps d'exécution des algorithmes Rcpp de tri
-one.simu_rcpp <- function(n, k = 3, type = "random", func = "tri_fusion_Rcpp") {
-  
-  # Génération des datasets selon l'intervalle défini par k
-  if (type == "random") {
-    v <- generate_values(n, k)  # Valeurs avec n éléments et k chiffres
-  }
-  
-  # Appel des fonctions de tri
-  if (func == "tri_fusion_Rcpp") t <- system.time(tri_fusion_Rcpp(v))[[1]]
-  if (func == "heap_sort_Rcpp") t <- system.time(heap_sort_Rcpp(v))[[1]]
+# Fonction simulant un tri et mesurant le temps d'exécution
+one.simu_rcpp <- function(n, k, type, func) {
+  v <- generate_values(n, k)  # Valeurs avec n éléments et k chiffres
+  if (func == "quick_sort_Rcpp") t <- system.time(quick_sort_Rcpp(v))[[1]]
   if (func == "tri_base_Rcpp") t <- system.time(tri_base_Rcpp(v))[[1]]
   
   return(t)
@@ -265,7 +51,6 @@ k_values <- 1:9
 
 # Simulations pour le dataset "random" uniquement
 # Init des vecteurs pour stocker les temps
-time1 <- matrix(NA, nrow = nbSimus, ncol = length(k_values))
 time2 <- matrix(NA, nrow = nbSimus, ncol = length(k_values))
 time3 <- matrix(NA, nrow = nbSimus, ncol = length(k_values))
 
@@ -273,8 +58,7 @@ time3 <- matrix(NA, nrow = nbSimus, ncol = length(k_values))
 for (k_index in 1:length(k_values)) {
   k <- k_values[k_index]
   # Calculer la médiane des temps pour chaque algorithme sur chaque taille de n et k
-  time1[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = "random", func = "tri_fusion_Rcpp")))
-  time2[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = "random", func = "heap_sort_Rcpp")))
+  time2[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = "random", func = "quick_sort_Rcpp")))
   time3[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = "random", func = "tri_base_Rcpp")))
 }
 
@@ -283,8 +67,7 @@ for (k_index in 1:length(k_values)) {
   results_list[[paste("k", k_values[k_index], sep = "_")]] <- data.frame(
     n = rep(vector_n, each = length(k_values)),
     k = rep(k_values[k_index], length(vector_n)),
-    fusion_Rcpp = time1[, k_index],
-    heap_Rcpp = time2[, k_index],
+    quick_Rcpp = time2[, k_index],
     base_Rcpp = time3[, k_index]
   )
 }
@@ -310,7 +93,6 @@ ggplot(df_long, aes(x = k, y = temps, color = algo, group = algo)) +
 
 
 
-
 ```
 
 
@@ -323,8 +105,46 @@ ggplot(df_long, aes(x = k, y = temps, color = algo, group = algo)) +
 
 
 
-croise lorsque n < exp(k)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tous le dataset
 
 ```{r}
 
@@ -337,7 +157,7 @@ vector_n <- 6000  # n fixe à 6000
 
 # Fonction qui génère des nombres selon le nombre de chiffres (k)
 generate_values <- function(n, k) {
-  min_value <- 10^(k-1)  # Le minimum possible pour k chiffres (par exemple, 100 pour k=3)
+  min_value <- 1  # Le minimum possible pour k chiffres (par exemple, 100 pour k=3)
   max_value <- 10^k - 1  # Le maximum possible pour k chiffres (par exemple, 999 pour k=3)
   return(sample(min_value:max_value, n, replace = TRUE))  # Génère des valeurs entre min_value et max_value
 }
@@ -357,18 +177,7 @@ generate_datasets <- function(n, k, type = "random") {
   }
 }
 
-# Fonction qui mesure le temps d'exécution des algorithmes Rcpp de tri
-one.simu_rcpp <- function(n, k = 3, type = "random", func = "tri_fusion_Rcpp") {
-  # Génération des datasets selon l'intervalle défini par k
-  v <- generate_datasets(n, k, type)
-  
-  # Appel des fonctions de tri
-  if (func == "tri_fusion_Rcpp") t <- system.time(tri_fusion_Rcpp(v))[[1]]
-  if (func == "heap_sort_Rcpp") t <- system.time(heap_sort_Rcpp(v))[[1]]
-  if (func == "tri_base_Rcpp") t <- system.time(tri_base_Rcpp(v))[[1]]
-  
-  return(t)
-}
+
 
 ################################################################################################
 
@@ -399,8 +208,7 @@ for (type in dataset_types) {
   for (k_index in 1:length(k_values)) {
     k <- k_values[k_index]
     # Calculer la médiane des temps pour chaque algorithme sur chaque taille de n et k
-    time1[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = type, func = "tri_fusion_Rcpp")))
-    time2[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = type, func = "heap_sort_Rcpp")))
+    time2[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = type, func = "quick_sort_Rcpp")))
     time3[1, k_index] <- median(replicate(10, one.simu_rcpp(vector_n, k = k, type = type, func = "tri_base_Rcpp")))
   }
   
@@ -409,8 +217,7 @@ for (type in dataset_types) {
     results_list[[paste(type, "k", k_values[k_index], sep = "_")]] <- data.frame(
       n = rep(vector_n, each = length(k_values)),
       k = rep(k_values[k_index], length(vector_n)),
-      fusion_Rcpp = time1[, k_index],
-      heap_Rcpp = time2[, k_index],
+      quick_Rcpp = time2[, k_index],
       base_Rcpp = time3[, k_index],
       dataset = type  # Ajouter le type de dataset
     )
@@ -439,6 +246,15 @@ ggplot(df_long, aes(x = k, y = temps, color = algo, group = algo)) +
 
 
 ```
+
+
+
+
+
+
+
+
+
 
 
 ```{r}
@@ -496,6 +312,23 @@ print(plot_almost)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #complexité linéaire et log linéaire 
 
 ```{r}
@@ -505,7 +338,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)  # Pour utiliser pivot_longer()
 
-# Supposons que les fonctions tri_fusion_Rcpp, heap_sort_Rcpp, tri_base_Rcpp soient déjà disponibles dans votre package
+# Supposons que les fonctions tri_fusion_Rcpp, quick_sort_Rcpp, tri_base_Rcpp soient déjà disponibles dans votre package
 
 # Exemple de tailles d'entrée
 sizes <- seq(1000, 10000, by = 1000)  # Tailles de l'entrée (1000 à 10000 éléments)
@@ -517,8 +350,7 @@ benchmark_comparison_small_values <- function() {
 
   # Utiliser microbenchmark pour mesurer les temps d'exécution des trois algorithmes
   results <- microbenchmark(
-    tri_fusion_Rcpp(small_values[[5]]),  # Tri Fusion (Merge Sort) pour une taille donnée
-    heap_sort_Rcpp(small_values[[5]]),   # Heap Sort
+    quick_sort_Rcpp(small_values[[5]]),   # quick Sort
     tri_base_Rcpp(small_values[[5]]),    # Radix Sort (testé avec des petites valeurs)
     times = 10                             # Répéter 10 fois pour chaque
   )
