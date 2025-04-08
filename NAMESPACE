@@ -1,12 +1,15 @@
 useDynLib(M2algorithmique, .registration=TRUE)
 
+importFrom(Rcpp, evalCpp)
+
 export(heap_sort)
 export(heap_sort_Rcpp)
+
 export(tri_fusion)
 export(tri_fusion_Rcpp)
 
 export(tri_base)
 export(tri_base_Rcpp)
 
-importFrom(Rcpp, evalCpp)
-
+export(quick_sort)
+export(quick_sort_Rcpp)

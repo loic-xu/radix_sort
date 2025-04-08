@@ -441,6 +441,59 @@ ggplot(df_long, aes(x = k, y = temps, color = algo, group = algo)) +
 ```
 
 
+```{r}
+
+# Charger les librairies
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+# Transformer les résultats en format long pour ggplot2
+df_compar_rcpp <- do.call(rbind, results_list)
+df_long <- pivot_longer(df_compar_rcpp, cols = -c(n, k, dataset), names_to = "algo", values_to = "temps")
+
+# Séparer les jeux de données par type
+df_random <- df_long %>% filter(dataset == "random")
+df_sorted <- df_long %>% filter(dataset == "sorted")
+df_reverse <- df_long %>% filter(dataset == "reverse")
+df_almost <- df_long %>% filter(dataset == "almost_sorted")
+
+# Créer un graphique pour chaque dataset
+plot_random <- ggplot(df_random, aes(x = k, y = temps, color = algo, group = algo)) +
+  geom_line() + geom_point() +
+  labs(title = "Random - Comparaison des algorithmes Rcpp (n = 6000)", 
+       x = "k (nombre de chiffres)", y = "Temps d'exécution (s)") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+plot_sorted <- ggplot(df_sorted, aes(x = k, y = temps, color = algo, group = algo)) +
+  geom_line() + geom_point() +
+  labs(title = "Sorted - Comparaison des algorithmes Rcpp (n = 6000)", 
+       x = "k (nombre de chiffres)", y = "Temps d'exécution (s)") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+plot_reverse <- ggplot(df_reverse, aes(x = k, y = temps, color = algo, group = algo)) +
+  geom_line() + geom_point() +
+  labs(title = "Reverse - Comparaison des algorithmes Rcpp (n = 6000)", 
+       x = "k (nombre de chiffres)", y = "Temps d'exécution (s)") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+plot_almost <- ggplot(df_almost, aes(x = k, y = temps, color = algo, group = algo)) +
+  geom_line() + geom_point() +
+  labs(title = "Almost Sorted - Comparaison des algorithmes Rcpp (n = 6000)", 
+       x = "k (nombre de chiffres)", y = "Temps d'exécution (s)") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+
+print(plot_random)
+print(plot_sorted)
+print(plot_reverse)
+print(plot_almost)
+
+
+
+```
+
+
 
 
 #complexité linéaire et log linéaire 
