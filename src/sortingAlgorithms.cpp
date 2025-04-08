@@ -4,32 +4,6 @@ using namespace Rcpp; //to use the NumericVector object
 #include<vector> //to use std::vector<double>
 
 
-//' Insertion sort algorithm using C++
-//'
-//' @param v an unsorted vector of numeric data
-//' @return a sorted vector
-//' @export
-// [[Rcpp::export]] //mandatory to export the function
-std::vector<double> insertion_sort_Rcpp(std::vector<double> v)
-{
-  double key;
-  int i;
-  for(unsigned int j = 1; j < v.size(); j++)
-  {
-    key = v[j];
-    i = j - 1;
-    while(i >= 0 && v[i] > key)
-    {
-      v[i + 1] = v[i];
-      i = i - 1;
-    }
-    v[i + 1] = key;
-  }
-  return v;
-}
-
-
-
 // [[Rcpp::export]]
 NumericVector build_heap_Rcpp(NumericVector heap, unsigned int i, unsigned int n)
 {
@@ -78,22 +52,6 @@ NumericVector heap_sort_Rcpp(NumericVector v)
       build_heap_Rcpp(v, 1, i-1);
     }
 
-  return v;
-}
-
-// [[Rcpp::export]]
-std::vector<double> tri_bulle_Rcpp(std::vector<double> v) {
-  bool swapped;
-  for (unsigned int i = 0; i < v.size() - 1; i++) {
-    swapped = false;
-    for (unsigned int j = 0; j < v.size() - i - 1; j++) {
-      if (v[j] > v[j + 1]) {
-        std::swap(v[j], v[j + 1]);
-        swapped = true;
-      }
-    }
-    if (!swapped) break; // Optimisation : si aucun échange, le tableau est trié
-  }
   return v;
 }
 

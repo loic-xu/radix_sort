@@ -1,11 +1,7 @@
 useDynLib(M2algorithmique, .registration=TRUE)
 
-export(insertion_sort)
-export(insertion_sort_Rcpp)
 export(heap_sort)
 export(heap_sort_Rcpp)
-export(tri_bulles)
-export(tri_bulle_Rcpp)
 export(tri_fusion)
 export(tri_fusion_Rcpp)
 

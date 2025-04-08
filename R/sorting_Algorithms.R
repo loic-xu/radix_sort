@@ -1,26 +1,6 @@
 ##  GPL-3 License
 ## Copyright (c) 2020 Vincent Runge
 
-#' Insertion sort algorithm
-#'
-#' @description Sorting by insertion
-#' @param v an unsorted vector of numeric data
-#' @return the sorted vector
-insertion_sort <- function(v)
-{
-  for(j in 2:length(v)) 
-  {
-    key <- v[j] 
-    i <- j - 1 
-    while(i > 0 && v[i] > key)
-    {
-      v[i + 1] <- v[i]
-      i <- i - 1 
-    }
-    v[i + 1] <- key
-  }
-  return(v)
-} 
 
 #########################################################
 #########################################################
@@ -108,20 +88,6 @@ build_heap_recursive <- function(heap, i, n)
     }
   }
   return(heap)
-}
-
-tri_bulles <- function(vecteur) {
-  n <- length(vecteur)
-  for (i in 1:(n-1)) {
-    for (j in 1:(n-i)) {
-      if (vecteur[j] > vecteur[j+1]) {
-        temp <- vecteur[j]
-        vecteur[j] <- vecteur[j+1]
-        vecteur[j+1] <- temp
-      }
-    }
-  }
-  return(vecteur)
 }
 
 

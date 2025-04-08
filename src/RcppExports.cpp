@@ -10,17 +10,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// insertion_sort_Rcpp
-std::vector<double> insertion_sort_Rcpp(std::vector<double> v);
-RcppExport SEXP _M2algorithmique_insertion_sort_Rcpp(SEXP vSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double> >::type v(vSEXP);
-    rcpp_result_gen = Rcpp::wrap(insertion_sort_Rcpp(v));
-    return rcpp_result_gen;
-END_RCPP
-}
 // build_heap_Rcpp
 NumericVector build_heap_Rcpp(NumericVector heap, unsigned int i, unsigned int n);
 RcppExport SEXP _M2algorithmique_build_heap_Rcpp(SEXP heapSEXP, SEXP iSEXP, SEXP nSEXP) {
@@ -42,17 +31,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type v(vSEXP);
     rcpp_result_gen = Rcpp::wrap(heap_sort_Rcpp(v));
-    return rcpp_result_gen;
-END_RCPP
-}
-// tri_bulle_Rcpp
-std::vector<double> tri_bulle_Rcpp(std::vector<double> v);
-RcppExport SEXP _M2algorithmique_tri_bulle_Rcpp(SEXP vSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<double> >::type v(vSEXP);
-    rcpp_result_gen = Rcpp::wrap(tri_bulle_Rcpp(v));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -80,10 +58,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_M2algorithmique_insertion_sort_Rcpp", (DL_FUNC) &_M2algorithmique_insertion_sort_Rcpp, 1},
     {"_M2algorithmique_build_heap_Rcpp", (DL_FUNC) &_M2algorithmique_build_heap_Rcpp, 3},
     {"_M2algorithmique_heap_sort_Rcpp", (DL_FUNC) &_M2algorithmique_heap_sort_Rcpp, 1},
-    {"_M2algorithmique_tri_bulle_Rcpp", (DL_FUNC) &_M2algorithmique_tri_bulle_Rcpp, 1},
     {"_M2algorithmique_tri_fusion_Rcpp", (DL_FUNC) &_M2algorithmique_tri_fusion_Rcpp, 1},
     {"_M2algorithmique_tri_base_Rcpp", (DL_FUNC) &_M2algorithmique_tri_base_Rcpp, 1},
     {NULL, NULL, 0}
