@@ -106,26 +106,31 @@ tri_fusion <- function(vec) {
 }
 
 merge <- function(left, right) {
-  result <- c()
+  n_left <- length(left)
+  n_right <- length(right)
+  
+  result <- numeric(n_left + n_right)
   i <- 1
   j <- 1
+  k <- 1
   
-  while (i <= length(left) && j <= length(right)) {
+  while (i <= n_left && j <= n_right) {
     if (left[i] <= right[j]) {
-      result <- c(result, left[i])
+      result[k] <- left[i]
       i <- i + 1
     } else {
-      result <- c(result, right[j])
+      result[k] <- right[j]
       j <- j + 1
     }
+    k <- k + 1
   }
   
-  if (i <= length(left)) {
-    result <- c(result, left[i:length(left)])
-  }
   
-  if (j <= length(right)) {
-    result <- c(result, right[j:length(right)])
+  if (i <= n_left) {
+    result[k:(n_left + n_right)] <- left[i:n_left]
+  }
+  if (j <= n_right) {
+    result[k:(n_left + n_right)] <- right[j:n_right]
   }
   
   return(result)
