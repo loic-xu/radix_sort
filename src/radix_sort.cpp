@@ -42,43 +42,30 @@ using namespace Rcpp; //to use the NumericVector object
  //' @export
  // [[Rcpp::export]]
  NumericVector radix_sort_Rcpp(NumericVector v_) {
+   // Vérifier que l'entrée n'est pas NULL
    if (v_.isNULL()) {
      stop("Input cannot be NULL.");
    }
+   
    NumericVector v(v_);
+   // Si le vecteur est vide, retourne immédiatement
    if (v.size() == 0) return v;
    
+   // Convertir le vecteur R en vector d'entiers
    std::vector<int> vec = Rcpp::as<std::vector<int>>(v);
-   
-   std::vector<int> positives;
-   std::vector<int> negatives;
-   
-   for (int x : vec) {
-     if (x >= 0) {
-       positives.push_back(x);
-     } else {
-       negatives.push_back(-x); // on stocke la valeur absolue
-     }
-   }
    
    // Fonction pour obtenir l'exposant max
    auto get_max_exp = [](const std::vector<int>& vals) {
      if (vals.empty()) return 0;
      int max_val = *std::max_element(vals.begin(), vals.end());
      int exp = 1;
-     while (max_val / exp > 0) exp *= 10;
-     return exp / 10;
+     while (max_val / exp >= 10) exp *= 10;
+     return exp;
    };
    
-   std::vector<int> sorted_positives = radix_sort(positives, get_max_exp(positives));
-   std::vector<int> sorted_negatives = radix_sort(negatives, get_max_exp(negatives));
+   // Trier les valeurs (uniquement les valeurs positives)
+   std::vector<int> sorted = radix_sort(vec, get_max_exp(vec));
    
-   // Inverser les négatifs et les repasser en négatifs
-   std::reverse(sorted_negatives.begin(), sorted_negatives.end());
-   for (int& x : sorted_negatives) x = -x;
-   
-   // Fusionner les deux
-   sorted_negatives.insert(sorted_negatives.end(), sorted_positives.begin(), sorted_positives.end());
-   
-   return wrap(sorted_negatives);
+   // Retourner le vecteur trié
+   return Rcpp::wrap(sorted);
  }

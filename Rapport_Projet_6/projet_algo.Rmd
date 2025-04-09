@@ -737,214 +737,90 @@ cat("Estimated exponent:", slope_r, "\n")  # Affichage de l'exposant estimé
 ## Comparaison de la complexité linéaire avec la complexité log-linéaire
 
 ```{r}
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-```{r}
-
-
-```
-
-
-
-
-
-
-
-
-
-
-Les vecteurs de longueurs `vector_n_insertion` et `vector_n_heap` (`n` dans les dataframes) sont choisis sur l'echelle logarithmique afin d'avoir un pas constant sur l'échelle logarithmique en abscisse pour la régression.
-
-On réalise 10 répétitions pour chaque valeur de `n` et pour chaque algorithme. Les barres d'erreur sont placées en "mean +/- sd". 
-
-```{r simu complexite, echo = FALSE, warning=FALSE, message=FALSE}
-library(ggplot2)
-library(dplyr)
-
-# Function to run benchmarking with mean and standard deviation
 benchmark_sorting <- function(func_name, n_values, nbRep) {
   results <- sapply(n_values, function(n) {
-    times <- replicate(nbRep, one.simu.time(n, func = func_name))  # Run simulations
-    c(mean_time = mean(times), sd_time = sd(times))  # Return mean & std dev
+    times <- replicate(nbRep, one.simu.time(n, func = func_name))  # Exécution des simulations
+    c(mean_time = mean(times), sd_time = sd(times))  # Temps moyen et écart-type
   })
   
-  # Convert results to a data frame
   data.frame(n = n_values, mean_time = results["mean_time",], sd_time = results["sd_time",])
 }
 
-
-
-# Parameters
-nbSimus <- 20
 nbRep <- 10
+vector_n_quick <- exp(seq(log(1000), log(50000), length.out = nbSimus))  # Taille de données sur une échelle logarithmique
+vector_n_quick <- round(vector_n_quick)
+res_Quick <- benchmark_sorting("quick_sort_Rcpp", vector_n_quick, nbRep)
 
-# Heap Sort Benchmark
-vector_n_heap <- exp(seq(log(10000), log(100000), length.out = nbSimus))
-vector_n_heap <- round(vector_n_heap)
-res_Heap <- benchmark_sorting("heap_sort_Rcpp", vector_n_heap, nbRep)
+model <- lm(log(res_Quick$mean_time) ~ log(res_Quick$n))  # Régression log-log
+print(summary(model))  # Affichage des résultats du modèle
+slope_r <- coef(model)[2]  # Récupération du coefficient directeur (exposant)
+cat("Estimated exponent:", slope_r, "\n")  # Affichage de l'exposant estimé
 
-# Insertion Sort Benchmark
-vector_n_insert <- exp(seq(log(5000), log(50000), length.out = nbSimus))
-vector_n_insert <- round(vector_n_insert)
-res_Insertion <- benchmark_sorting("insertion_sort_Rcpp", vector_n_insert, nbRep)
+```
 
-# Log-log plot of sorting performance with error bars
-ggplot() +
-  # Heap Sort
-  geom_line(data = res_Heap, aes(x = n, y = mean_time, color = "Heap Sort"), size = 1) +
-  geom_errorbar(data = res_Heap, 
-                aes(x = n, ymin = mean_time - sd_time, ymax = mean_time + sd_time, color = "Heap Sort"), 
-                width = 0.1, alpha = 0.5) +
-  
-  # Insertion Sort
-  geom_line(data = res_Insertion, aes(x = n, y = mean_time, color = "Insertion Sort"), size = 1) +
-  geom_errorbar(data = res_Insertion, 
-                aes(x = n, ymin = mean_time - sd_time, ymax = mean_time + sd_time, color = "Insertion Sort"), 
-                width = 0.1, alpha = 0.5) +
 
-  # Log-log scales
-  scale_x_log10() +
-  scale_y_log10() +
-  
-  # Labels & theme
-  labs(title = "Sorting Algorithm Performance (Log-Log Scale with Error Bars)",
-       x = "Data Length (log scale)", 
-       y = "Mean Running Time (log scale)",
-       color = "Algorithm") +
+```{r}
+library(ggplot2)
+
+# Ajout du nom de l'algorithme à chaque jeu de données
+res_Quick$algo <- "QuickSort"
+res_Radix$algo <- "RadixSort"
+
+# Combine les deux
+df_all <- rbind(res_Quick, res_Radix)
+
+# Calcul des pentes (exposants) par algorithme
+model_quick <- lm(log(mean_time) ~ log(n), data = subset(df_all, algo == "QuickSort"))
+model_radix <- lm(log(mean_time) ~ log(n), data = subset(df_all, algo == "RadixSort"))
+
+slope_quick <- round(coef(model_quick)[2], 3)
+slope_radix <- round(coef(model_radix)[2], 3)
+
+# Affichage des pentes
+cat("Pente QuickSort :", slope_quick, "\n")
+cat("Pente RadixSort :", slope_radix, "\n")
+
+# Génère le graphique avec les pentes dans le titre
+ggplot(df_all, aes(x = log(n), y = log(mean_time), color = algo)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = paste0(
+      "Comparaison complexité empirique\n",
+      "QuickSort (pente ≈ ", slope_quick, "), ",
+      "RadixSort (pente ≈ ", slope_radix, ")"
+    ),
+    x = "log(n)",
+    y = "log(temps moyen)"
+  ) +
   theme_minimal()
 
+
 ```
+
+
+
 
 ```{r}
-res_Heap
-res_Insertion
-```
-
-On vérifie la valeur du coefficient directeur pour les deux méthodes:
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-model <- lm(log(res_Insertion$mean_time) ~ log(res_Insertion$n))
-print(summary(model)) 
-slope_r <- coef(model)[2]
-cat("Estimated exponent:", slope_r, "\n")
-```
 
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-model <- lm(log(res_Heap$mean_time) ~ log(res_Heap$n))
-print(summary(model)) 
-slope_r <- coef(model)[2]
-cat("Estimated exponent:", slope_r, "\n")
-```
-
-Les coefficients dfirecteurs trouvés sont bien ceux que l'on attendait. La valeur 2 pour l'insertion et 1 pour le tas.
-
-
-___ 
-
-
-# Cas particulier des données presque triées
-
-On considère des données triées avec 5% de valeurs échangées au hasard.
-
-Sur un exemple cela donne : 
-```{r}
-v <- 1:100
-n_swap <- floor(0.05 * length(v))
-swap_indices <- sample(length(v), n_swap)
-v[swap_indices] <- sample(v[swap_indices])
-v
 ```
 
 
 ```{r}
-one.simu2 <- function(n, func)
-{
-  v <- 1:n
-  n_swap <- floor(0.05 * length(v))
-  swap_indices <- sample(length(v), n_swap)
-  v[swap_indices] <- sample(v[swap_indices])
-  if(func == "insertion_sort"){insertion_sort(v)}
-  if(func == "heap_sort"){heap_sort(v)} 
-  if(func == "insertion_sort_Rcpp"){insertion_sort_Rcpp(v)}
-  if(func == "heap_sort_Rcpp"){heap_sort_Rcpp(v)}
-}
+
+
 ```
 
 
-```{r benchmark2, echo = FALSE, warning=FALSE, message=FALSE}
-# Function to run benchmark
-benchmark_sorting <- function(n, times = 50)
-{
-  microbenchmark(
-    insertion_sort = one.simu2(n, func = "insertion_sort_Rcpp"),
-    heap_sort = one.simu2(n, func = "heap_sort_Rcpp"),
-    times = times,
-    control = list(gc = FALSE)
-  )
-}
-# Run benchmarks for different n values
-n_values <- c(1000, 10000)
-results <- lapply(n_values, benchmark_sorting)
+```{r}
 
-# Combine results into a single dataframe with n as an identifier
-df_results <- do.call(rbind, Map(cbind, results, n = n_values))
-# Plot with better aesthetics
-ggplot(df_results, aes(x = expr, y = time / 1e6, fill = expr)) +
-  geom_violin(alpha = 0.7) +
-  facet_wrap(~n, scales = "free") +
-  labs(title = "Sorting Algorithm in Rcpp Benchmark",
-       x = "Sorting Algorithm",
-       y = "Execution Time (ms)",
-       fill = "Algorithm") +
-  theme_minimal()
+
 ```
+```{r}
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-library(dplyr)
-df_results %>%
-  group_by(n, expr) %>%
-  summarise(
-    min_time = min(time) / 1e6,   # Convert nanoseconds to milliseconds
-    q1_time = quantile(time, 0.25) / 1e6,
-    median_time = median(time) / 1e6,
-    mean_time = mean(time) / 1e6,
-    q3_time = quantile(time, 0.75) / 1e6,
-    max_time = max(time) / 1e6,
-    .groups = "drop"
-  )
+
 ```
-
 
 
 
