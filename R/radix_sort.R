@@ -12,20 +12,19 @@ radix_sort <- function(vec) {
     return(vec)
   }
   
-  # Trouver la valeur maximale dans le vecteur pour déterminer le nombre de passes nécessaires
-  max_val <- max(vec)
-  exp <- 1  # L'exposant pour extraire chaque chiffre
+  # Séparer les valeurs négatives et positives
+  negative_vals <- vec[vec < 0]
+  positive_vals <- vec[vec >= 0]
   
-  # Tant que l'exposant est inférieur ou égal à la valeur maximale
-  while (max_val / exp >= 1) {
-    # Appliquer le tri par comptage sur les chiffres à l'exposant actuel
-    vec <- counting_sort(vec, exp)
-    # Passer à l'exposant suivant (ex : 1, 10, 100, etc.)
-    exp <- exp * 10
-  }
+  # Trier d'abord les valeurs absolues
+  sorted_positive <- counting_sort(abs(positive_vals), 1)
+  sorted_negative <- counting_sort(abs(negative_vals), 1)
   
-  # Retourner le vecteur trié
-  return(vec)
+  # Réorganiser les résultats pour avoir les négatifs avant les positifs
+  sorted_negative <- rev(sorted_negative)  # Les valeurs négatives doivent être triées dans l'ordre décroissant
+  
+  # Combiner les résultats avec les négatifs en premier
+  return(c(-sorted_negative, sorted_positive))
 }
 
 #' Counting Sort as a Subroutine for Radix Sort

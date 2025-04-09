@@ -1,4 +1,3 @@
-
 #' Heap Sort Algorithm
 #'
 #' This function sorts a numeric vector using the Heap Sort algorithm.
@@ -10,6 +9,16 @@
 #' @export
 heap_sort <- function(v, type = "notRecursive") {
   n <- length(v)
+  
+  # Si le vecteur est vide, renvoyer directement le vecteur
+  if (n == 0) {
+    return(v)
+  }
+  
+  # Si le vecteur a une seule valeur, il est déjà trié
+  if (n == 1) {
+    return(v)
+  }
   
   # Construire un tas (heap) en utilisant l'itération ou la récursion
   if (type == "notRecursive") {

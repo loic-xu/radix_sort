@@ -2,13 +2,39 @@
 % Please edit documentation in R/sort_algorithms_Rcpp.R
 \name{radix_sort_Rcpp}
 \alias{radix_sort_Rcpp}
-\title{Tri par tas en C++}
+\title{Radix Sort Algorithm (C++ Implementation)}
 \arguments{
-\item{x}{Un vecteur numérique à trier.}
+\item{v}{A numeric vector of integers to be sorted. This can include both positive and negative integers.}
 }
 \value{
-Un vecteur trié.
+A sorted numeric vector with the same elements in ascending order.
 }
 \description{
-Trie un vecteur numérique en utilisant l'algorithme de tri par tas (heap sort).
+This function implements the radix sort algorithm, a non-comparative integer sorting algorithm. 
+The algorithm processes each digit of the numbers starting from the least significant digit and moving 
+to the most significant. The sorting is done by grouping the numbers based on their digits and iteratively 
+sorting them until all digits are processed.
+
+The function handles both positive and negative numbers by separating them, sorting the absolute values 
+and then merging them back together. Negative values are reversed to ensure they maintain their correct 
+order in the sorted result.
+}
+\details{
+The radix sort algorithm works by sorting numbers based on their individual digits. The function 
+processes each digit of the numbers starting from the least significant digit (units place) and proceeds 
+to the more significant digits. It groups numbers into buckets based on each digit and sorts these buckets 
+recursively. For negative numbers, the algorithm treats them as their absolute values initially, and then 
+reverses them at the end to preserve the negative sign.
+
+\itemize{
+  \item \strong{Time Complexity:} O(n * d), where `n` is the number of elements and `d` is the number of digits in the largest number.
+  \item \strong{Space Complexity:} O(n) for storing the sorted results and temporary bucket arrays.
+}
+The algorithm is efficient for sorting integers when the number of digits is relatively small.
+}
+\examples{
+v <- c(10, 2, 5, -3, 1, 20, -2)
+radix_sort_Rcpp(v)
+# Returns: c(-3, -2, 1, 2, 5, 10, 20)
+
 }

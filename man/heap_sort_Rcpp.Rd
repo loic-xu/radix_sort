@@ -4,11 +4,40 @@
 \alias{heap_sort_Rcpp}
 \title{Tri par tas en C++}
 \arguments{
-\item{x}{Un vecteur numérique à trier.}
+\item{v}{A numeric vector to be sorted. The function returns the sorted vector in ascending order.}
 }
 \value{
-Un vecteur trié.
+A sorted numeric vector with the elements arranged in ascending order.
 }
 \description{
+This function implements the heap sort algorithm, a comparison-based sorting algorithm with a worst-case 
+time complexity of O(n log n). It works by first building a max-heap from the input vector, which ensures that 
+the largest element is at the root. Then, the root element is swapped with the last element in the vector, 
+and the heap is restructured to maintain the heap property. This process is repeated until all elements are sorted.
+
+The heap sort algorithm does not require additional memory for recursion, as it sorts the vector in place.
+}
+\details{
 Trie un vecteur numérique en utilisant l'algorithme de tri par tas (heap sort).
+
+Heap Sort Algorithm (C++ Implementation)
+
+
+Heap sort first builds a binary heap from the input vector. Then, it repeatedly swaps the root element (the 
+largest) with the last unsorted element in the heap and reduces the size of the heap by one. The heap property 
+is then restored by a process called "heapify". This sorting algorithm is efficient and works in-place, 
+without requiring additional memory for recursion, as merge sort does.
+
+\itemize{
+  \item \strong{Time Complexity:} O(n log n) in all cases.
+  \item \strong{Space Complexity:} O(1) as the sorting is done in-place.
+}
+Heap sort is often used when memory efficiency is critical, as it does not require additional storage for 
+sorting like merge sort does.
+}
+\examples{
+v <- c(3, 2, 1)
+heap_sort_Rcpp(v)
+# Returns: c(1, 2, 3)
+
 }
