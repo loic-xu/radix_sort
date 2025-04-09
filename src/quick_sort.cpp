@@ -37,6 +37,7 @@ using namespace Rcpp; //to use the NumericVector object
  //' v <- c(3, 2, 1)
  //' quick_sort_Rcpp(v)
  //' # Returns: c(1, 2, 3)
+ //' @name quick_sort_Rcpp
  //' @export
  // [[Rcpp::export]]
  NumericVector quick_sort_Rcpp(Nullable<NumericVector> v_) {

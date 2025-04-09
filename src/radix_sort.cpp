@@ -38,6 +38,7 @@ using namespace Rcpp; //to use the NumericVector object
  //' v <- c(10, 2, 5, -3, 1, 20, -2)
  //' radix_sort_Rcpp(v)
  //' # Returns: c(-3, -2, 1, 2, 5, 10, 20)
+ //' @name radix_sort_Rcpp
  //' @export
  // [[Rcpp::export]]
  NumericVector radix_sort_Rcpp(NumericVector v_) {

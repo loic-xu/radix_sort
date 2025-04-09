@@ -35,6 +35,7 @@ using namespace Rcpp; //to use the NumericVector object
  //' v <- c(3, 2, 1)
  //' merge_sort_Rcpp(v)
  //' # Returns: c(1, 2, 3)
+ //' @name merge_sort_Rcpp
  //' @export
  // [[Rcpp::export]]
  NumericVector merge_sort_Rcpp(Nullable<NumericVector> v_) {

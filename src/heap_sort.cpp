@@ -4,8 +4,6 @@
 
 using namespace Rcpp; //to use the NumericVector object
 
-
-
  //' Heap Sort Algorithm (C++ Implementation)
  //' 
  //' @description
@@ -37,6 +35,7 @@ using namespace Rcpp; //to use the NumericVector object
  //' v <- c(3, 2, 1)
  //' heap_sort_Rcpp(v)
  //' # Returns: c(1, 2, 3)
+ //' @name heap_sort_Rcpp
  //' @export
  // [[Rcpp::export]]
  NumericVector heap_sort_Rcpp(NumericVector v_) {
