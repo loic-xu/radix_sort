@@ -53,25 +53,48 @@ std::vector<int> radix_sort(std::vector<int> v, int exp) {
  //' # Returns: c(1, 2, 3)
  //' @export
  // [[Rcpp::export]]
- NumericVector radix_sort_Rcpp(NumericVector v) {
+ NumericVector radix_sort_Rcpp(NumericVector v_) {
+   if (v_.isNULL()) {
+     stop("Input cannot be NULL.");
+   }
+   NumericVector v(v_);
    if (v.size() == 0) return v;
    
-   // Convert NumericVector to std::vector<int>
    std::vector<int> vec = Rcpp::as<std::vector<int>>(v);
    
-   int max_val = *std::max_element(vec.begin(), vec.end());
-   int exp = 1;
+   std::vector<int> positives;
+   std::vector<int> negatives;
    
-   // Determine the highest digit position
-   while (max_val / exp > 0) {
-     exp *= 10;
+   for (int x : vec) {
+     if (x >= 0) {
+       positives.push_back(x);
+     } else {
+       negatives.push_back(-x); // on stocke la valeur absolue
+     }
    }
-   exp /= 10; // Back to the last significant digit
    
-   std::vector<int> sorted_vec = radix_sort(vec, exp);
+   // Fonction pour obtenir l'exposant max
+   auto get_max_exp = [](const std::vector<int>& vals) {
+     if (vals.empty()) return 0;
+     int max_val = *std::max_element(vals.begin(), vals.end());
+     int exp = 1;
+     while (max_val / exp > 0) exp *= 10;
+     return exp / 10;
+   };
    
-   return wrap(sorted_vec); // Convert std::vector back to NumericVector
+   std::vector<int> sorted_positives = radix_sort(positives, get_max_exp(positives));
+   std::vector<int> sorted_negatives = radix_sort(negatives, get_max_exp(negatives));
+   
+   // Inverser les négatifs et les repasser en négatifs
+   std::reverse(sorted_negatives.begin(), sorted_negatives.end());
+   for (int& x : sorted_negatives) x = -x;
+   
+   // Fusionner les deux
+   sorted_negatives.insert(sorted_negatives.end(), sorted_positives.begin(), sorted_positives.end());
+   
+   return wrap(sorted_negatives);
  }
+
 
 
 // --------- QUICK SORT ----------
@@ -116,11 +139,19 @@ void quick_sort_helper(std::vector<double>& arr, int left, int right) {
  //' # Returns: c(1, 2, 3)
  //' @export
  // [[Rcpp::export]]
- NumericVector quick_sort_Rcpp(NumericVector v) {
+NumericVector quick_sort_Rcpp(Nullable<NumericVector> v_) {
+   if (v_.isNull()) {
+     stop("Input cannot be NULL.");
+   }
+   NumericVector v(v_);
+   if (v.size() == 0) return v;
+   
    std::vector<double> vec = Rcpp::as<std::vector<double>>(v);
    quick_sort_helper(vec, 0, vec.size() - 1);
    return wrap(vec);
  }
+
+
 
 
 // --------- HEAP SORT ----------
@@ -169,25 +200,34 @@ NumericVector build_heap_Rcpp(NumericVector heap, unsigned int i, unsigned int n
  //' # Returns: c(1, 2, 3)
  //' @export
  // [[Rcpp::export]]
- NumericVector heap_sort_Rcpp(NumericVector v) {
+ NumericVector heap_sort_Rcpp(Nullable<NumericVector> v_) {
+   if (v_.isNull()) {
+     stop("Input cannot be NULL.");
+   }
+   
+   NumericVector v(v_);
+   if (v.size() == 0) return v; // Retourne un vecteur vide si l'entrée est vide
+   
    unsigned int n = v.size();
    double temp;
    
-   // Construction du tas
-   for (unsigned int i = (n / 2); i >= 1; i--) { // Itération ajustée
-     v = build_heap_Rcpp(v, i, n);  // Construire le tas
+   // Construction initiale du tas (attention au type signé)
+   for (int i = n / 2; i >= 1; i--) {
+     v = build_heap_Rcpp(v, i, n);
    }
    
-   // Tri du tas
+   // Tri par extraction du maximum
    for (unsigned int i = n; i > 1; i--) {
      temp = v[i - 1];
      v[i - 1] = v[0];
      v[0] = temp;
-     v = build_heap_Rcpp(v, 1, i - 1);  // Réorganiser le tas
+     v = build_heap_Rcpp(v, 1, i - 1);
    }
    
    return v;
  }
+
+
 
 
 // ------------------------------
@@ -236,6 +276,7 @@ std::vector<double> merge_sort(std::vector<double> v) {
   return result;
 }
 
+
  //' Merge Sort Algorithm (C++ Implementation)
  //' 
  //' This function sorts a numeric vector using the merge sort algorithm,
@@ -250,8 +291,14 @@ std::vector<double> merge_sort(std::vector<double> v) {
  //' # Returns: c(1, 2, 3)
  //' @export
  // [[Rcpp::export]]
- NumericVector merge_sort_Rcpp(NumericVector v) {
-   std::vector<double> vec(v.begin(), v.end()); // Convert NumericVector to std::vector<double>
-   std::vector<double> sorted_vec = merge_sort(vec); // Perform merge sort
-   return wrap(sorted_vec); // Convert std::vector back to NumericVector
- }
+NumericVector merge_sort_Rcpp(Nullable<NumericVector> v_) {
+  if (v_.isNull()) {
+    stop("Input cannot be NULL.");
+  }
+  NumericVector v(v_);
+  if (v.size() == 0) return v;
+  
+  std::vector<double> vec(v.begin(), v.end());
+  std::vector<double> sorted_vec = merge_sort(vec);
+  return wrap(sorted_vec);
+}
