@@ -5,7 +5,7 @@ Version: 1.0
 Date: 2025-03-28
 Author: Loïc XU, Hajar LAMTAAI, Adèle BERGER
 Maintainer: Loïc XU <loic.xu@example.com>, Hajar LAMTAAI <hajarlamtaai25@gmail.com>, Adèle BERGER <adele.berger18@gmail.com>
-Description: This package provides implementations of the Radix Sort algorithm, and other sort algorithm in R and C++. It includes performance evaluations, complexity analysis, and comparisons with other sorting algorithms like Merge Sort and Heap Sort. The package also supports the simulation of algorithmic complexity and the comparison of execution times between R and C++.
+Description: This package provides implementations of the Radix Sort algorithm, and other sort algorithm in R and C++. It includes performance evaluations, complexity analysis, and comparisons with other sorting algorithms like Merge Sort, Heap Sort and Quick Sort. The package also supports the simulation of algorithmic complexity and the comparison of execution times between R and C++.
 License: GPL-3
 Encoding: UTF-8
 Imports: Rcpp (>= 1.0.5)
