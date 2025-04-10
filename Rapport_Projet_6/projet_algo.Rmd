@@ -867,25 +867,23 @@ for (df_long in df_long_list) {
 ## Evaluation de la complexité
 
 Cette fonction calcule le temps d'exécution moyen et l'écart type pour plusieurs tailles de données n.
+
+
 ```{r}
 
-benchmark_sorting <- function(func_name, n_values, nbRep) {
-  results <- sapply(n_values, function(n) {
-    times <- replicate(nbRep, one.simu.time(n, func = func_name))  # Exécution des simulations
-    c(mean_time = mean(times), sd_time = sd(times))  # Temps moyen et écart-type
-  })
-  
-  data.frame(n = n_values, mean_time = results["mean_time",], sd_time = results["sd_time",])
-}
+
+
+
 
 ```
 
+
+
+
 Les données de benchmark sont calculées pour différentes tailles de données, stockées dans vector_n_radix.
 ```{r}
-nbRep <- 10
-vector_n_radix <- exp(seq(log(1000), log(50000), length.out = nbSimus))  # Taille de données sur une échelle logarithmique
-vector_n_radix <- round(vector_n_radix)
-res_Radix <- benchmark_sorting("radix_sort_Rcpp", vector_n_radix, nbRep)
+
+
 
 ```
 
@@ -894,13 +892,9 @@ Ensuite, une régression linéaire est effectuée sur les données de temps (mea
 
 ```{r}
 
-model <- lm(log(res_Radix$mean_time) ~ log(res_Radix$n))  # Régression log-log
-print(summary(model))  # Affichage des résultats du modèle
-slope_r <- coef(model)[2]  # Récupération du coefficient directeur (exposant)
-cat("Estimated exponent:", slope_r, "\n")  # Affichage de l'exposant estimé
-
 
 ```
+
 
 
 **Conclusion**
@@ -912,67 +906,219 @@ cat("Estimated exponent:", slope_r, "\n")  # Affichage de l'exposant estimé
 
 # Comparaison de la complexité linéaire avec la complexité log-linéaire
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r}
-benchmark_sorting <- function(func_name, n_values, nbRep) {
-  results <- sapply(n_values, function(n) {
-    times <- replicate(nbRep, one.simu.time(n, func = func_name))  # Exécution des simulations
-    c(mean_time = mean(times), sd_time = sd(times))  # Temps moyen et écart-type
-  })
-  
-  data.frame(n = n_values, mean_time = results["mean_time",], sd_time = results["sd_time",])
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+
+```{r}
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+# Mesure le temps moyen d'exécution de func sur des vecteurs aléatoires
+one.simu.time.multi <- function(n, func, d = 1, reps = 100) {
+  total_time <- system.time({
+    for (i in 1:reps) {
+      v <- sample(0:(10^d - 1), n, replace = TRUE)
+      do.call(func, list(v))
+    }
+  })["elapsed"]
+  total_time / reps
 }
 
+benchmark_sorting <- function(func_name, n_values, nbRep = 10, d = 1, reps_per_sim = 100) {
+  results <- sapply(n_values, function(n) {
+    times <- replicate(nbRep, {
+      one.simu.time.multi(n, func = func_name, d = d, reps = reps_per_sim)
+    })
+    c(mean_time = mean(times), sd_time = sd(times))
+  })
+
+  data.frame(n = n_values, mean_time = results["mean_time", ], sd_time = results["sd_time", ])
+}
+# Paramètres
 nbRep <- 10
-vector_n_merge <- exp(seq(log(1000), log(50000), length.out = nbSimus))  # Taille de données sur une échelle logarithmique
-vector_n_merge <- round(vector_n_merge)
-res_merge <- benchmark_sorting("merge_sort_Rcpp", vector_n_merge, nbRep)
+reps_per_sim <- 100
+d <- 1  # nombre de chiffres max (ex : d = 3 → valeurs entre 0 et 999)
 
-model <- lm(log(res_merge$mean_time) ~ log(res_merge$n))  # Régression log-log
-print(summary(model))  # Affichage des résultats du modèle
-slope_r <- coef(model)[2]  # Récupération du coefficient directeur (exposant)
-cat("Estimated exponent:", slope_r, "\n")  # Affichage de l'exposant estimé
+# Tailles de données testées
+vector_n_radix <- seq(5000, 500000, by = 25000)
 
-```
+# Lancer le benchmark
+res_Radix <- benchmark_sorting("radix_sort_Rcpp", vector_n_radix, nbRep, d, reps_per_sim)
 
 
-```{r}
+# Modèle de régression log-log
+model <- lm(log(res_Radix$mean_time) ~ log(res_Radix$n))
+slope_r <- coef(model)[2]
+cat("Estimated exponent (slope) =", round(slope_r, 4), "\n")
+
 library(ggplot2)
 
-# Ajout du nom de l'algorithme à chaque jeu de données
-res_merge$algo <- "mergeSort"
-res_Radix$algo <- "RadixSort"
-
-# Combine les deux
-df_all <- rbind(res_merge, res_Radix)
-
-# Calcul des pentes (exposants) par algorithme
-model_merge <- lm(log(mean_time) ~ log(n), data = subset(df_all, algo == "mergeSort"))
-model_radix <- lm(log(mean_time) ~ log(n), data = subset(df_all, algo == "RadixSort"))
-
-slope_merge <- round(coef(model_merge)[2], 3)
-slope_radix <- round(coef(model_radix)[2], 3)
-
-# Affichage des pentes
-cat("Pente mergeSort :", slope_merge, "\n")
-cat("Pente RadixSort :", slope_radix, "\n")
-
-# Génère le graphique avec les pentes dans le titre
-ggplot(df_all, aes(x = log(n), y = log(mean_time), color = algo)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    title = paste0(
-      "Comparaison complexité empirique\n",
-      "mergeSort (pente ≈ ", slope_merge, "), ",
-      "RadixSort (pente ≈ ", slope_radix, ")"
-    ),
-    x = "log(n)",
-    y = "log(temps moyen)"
-  ) +
+ggplot(res_Radix, aes(x = n, y = mean_time)) +
+  geom_point(color = "red", size = 2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(title = paste("Benchmark Radix Sort (d =", d, ")"),
+       x = "Taille des données (n)",
+       y = "Temps moyen (s)") +
+  geom_smooth(method = "lm", formula = y ~ x, color = "blue", se = FALSE) +
+  geom_abline(intercept = coef(model)[1], slope = coef(model)[2], 
+              color = "green", linetype = "dashed") +
+  annotate("text", x = max(res_Radix$n) * 0.5, y = min(res_Radix$mean_time),
+           label = paste("Slope =", round(slope_r, 4)),
+           color = "black", size = 5, hjust = 0) +
   theme_minimal()
 
+```
+
+
+
+
+
+
+
+```{r}
+one.simu.time.multi <- function(n, func, d = 1, reps = 100) {
+  total_time <- system.time({
+    for (i in 1:reps) {
+      v <- sample(0:(10^d - 1), n, replace = TRUE)
+      do.call(func, list(v))
+    }
+  })["elapsed"]
+  total_time / reps
+}
+benchmark_sorting <- function(func_name, n_values, nbRep = 10, d = 1, reps_per_sim = 100) {
+  results <- sapply(n_values, function(n) {
+    times <- replicate(nbRep, {
+      one.simu.time.multi(n, func = func_name, d = d, reps = reps_per_sim)
+    })
+    c(mean_time = mean(times), sd_time = sd(times))
+  })
+
+  data.frame(n = n_values, mean_time = results["mean_time", ], sd_time = results["sd_time", ])
+}
+# Paramètres communs
+nbRep <- 10
+reps_per_sim <- 100
+d <- 1
+vector_n <- seq(5000, 500000, by = 25000)
+
+# Benchmarks
+res_merge <- benchmark_sorting("merge_sort_Rcpp", vector_n, nbRep, d, reps_per_sim)
+res_radix <- benchmark_sorting("radix_sort_Rcpp", vector_n, nbRep, d, reps_per_sim)
+model_merge <- lm(log(res_merge$mean_time) ~ log(res_merge$n))
+slope_merge <- coef(model_merge)[2]
+
+model_radix <- lm(log(res_radix$mean_time) ~ log(res_radix$n))
+slope_radix <- coef(model_radix)[2]
+
+cat("Pente Merge Sort :", round(slope_merge, 4), "\n")
+cat("Pente Radix Sort :", round(slope_radix, 4), "\n")
 
 ```
+
+On compare maintenant les deux algorithmes sur le même graphe :
+
+
+```{r}
+
+# Fusion des résultats avec un identifiant d'algorithme
+res_merge$algo <- "Merge Sort"
+res_radix$algo <- "Radix Sort"
+res_all <- rbind(res_merge, res_radix)
+
+# Graphique comparatif
+ggplot(res_all, aes(x = n, y = mean_time, color = algo)) +
+  geom_point(size = 2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(title = "Comparaison des Temps d'Exécution (log-log)",
+       subtitle = paste("Pentes : Merge =", round(slope_merge, 3), 
+                        "| Radix =", round(slope_radix, 3)),
+       x = "Taille des données (n)",
+       y = "Temps moyen (s)",
+       color = "Algorithme") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +
+  theme_minimal()
+
+```
+
+
 
 
 
@@ -993,17 +1139,18 @@ ggplot(df_all, aes(x = log(n), y = log(mean_time), color = algo)) +
 
 
 ```
+
+
+
 ```{r}
 
 
+
+
+
+
+
 ```
-
-
-
-
-
-
-
 
 
 
