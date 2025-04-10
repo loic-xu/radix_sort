@@ -904,6 +904,12 @@ Dans ce projet, nous avons exploré et comparé les performances de différents 
 - **Optimisation en C++ (via Rcpp)** : Les implémentations en C++ ont été significativement plus rapides que celles en R. Cela souligne l'importance de l'optimisation des performances dans les tâches computationnelles intensives.
 - **Radix Sort en C++** : En C++, le Radix Sort a été environ **27 fois plus rapide** que sa version en R, démontrant l'efficacité de l'optimisation en C++.
 
+
+## Croisement des Courbes avec \( k = \log(n) \)
+
+Dans notre analyse, nous avons observé que les courbes des temps d'exécution du Radix Sort et du Merge Sort se croisent, en théorie, lorsque \( k = \log(n) \). Cependant, en pratique, ce n'est pas forcément le cas. Nous avons effectué des tests sur différents jeux de données et il n'y avait pas de valeur précise de \( k \) qui ressortait.
+
+
 ### Analyse des Pentes et des Courbes
 
 - Les **pentes des courbes de régression** ont permis de distinguer clairement la complexité linéaire de la complexité log-linéaire.
