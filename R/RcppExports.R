@@ -9,10 +9,6 @@ merge_sort_Rcpp <- function(v_) {
     .Call(`_M2algorithmique_merge_sort_Rcpp`, v_)
 }
 
-quick_sort_Rcpp <- function(v_) {
-    .Call(`_M2algorithmique_quick_sort_Rcpp`, v_)
-}
-
 radix_sort_Rcpp <- function(v_) {
     .Call(`_M2algorithmique_radix_sort_Rcpp`, v_)
 }

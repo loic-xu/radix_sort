@@ -74,45 +74,6 @@ heap_sort_Rcpp
 merge_sort_Rcpp
 
 
-
-
-#' Quick Sort Algorithm (C++ Implementation)
-#' 
-#' @description
-#' This function implements the quick sort algorithm, which is a comparison-based sorting algorithm 
-#' with an average-case time complexity of O(n log n). It works by selecting a "pivot" element and partitioning 
-#' the input vector into two sub-vectors: one containing elements less than the pivot, and the other containing 
-#' elements greater than the pivot. These sub-vectors are then recursively sorted.
-#' 
-#' The function uses the Lomuto partition scheme to organize the elements around the pivot, ensuring that all 
-#' elements on the left are smaller and all elements on the right are larger than the pivot.
-#' 
-#' @param v A numeric vector to be sorted. The function will return the vector sorted in ascending order.
-#' 
-#' @return A sorted numeric vector with the elements of `v` arranged in ascending order.
-#' 
-#' @details
-#' The quick sort algorithm is based on the divide-and-conquer paradigm. It divides the problem into smaller 
-#' sub-problems, sorting each sub-array recursively, and then combines the solutions to form the final sorted array. 
-#' This algorithm is very efficient on average, but its worst-case time complexity is O(n²), which can occur if the 
-#' pivot selection is poor (e.g., always selecting the smallest or largest element as the pivot).
-#' 
-#' \itemize{
-#'   \item \strong{Time Complexity:} O(n log n) on average, O(n²) in the worst case (for example, if the array is already sorted).
-#'   \item \strong{Space Complexity:} O(log n) for recursive stack space.
-#' }
-#' Quick sort is generally faster than other O(n log n) algorithms like merge sort, but it is sensitive to the choice of pivot.
-#' 
-#' @examples
-#' v <- c(3, 2, 1)
-#' quick_sort_Rcpp(v)
-#' # Returns: c(1, 2, 3)
-#' 
-#' @name quick_sort_Rcpp
-#' @export
-quick_sort_Rcpp
-
-
 #' Radix Sort Algorithm (C++ Implementation)
 #' 
 #' @description
@@ -143,9 +104,9 @@ quick_sort_Rcpp
 #' The algorithm is efficient for sorting integers when the number of digits is relatively small.
 #' 
 #' @examples
-#' v <- c(10, 2, 5, -3, 1, 20, -2)
+#' v <- c(10, 2, 5, 3, 1, 20, 2)
 #' radix_sort_Rcpp(v)
-#' # Returns: c(-3, -2, 1, 2, 5, 10, 20)
+#' # Returns: c(1, 2, 2, 3, 5, 10, 20)
 #' 
 #' @name radix_sort_Rcpp
 #' @export

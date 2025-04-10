@@ -28,26 +28,6 @@ std::vector<int> radix_sort(std::vector<int> v, int exp) {
   return sorted_v;
 }
 
-// === Quick Sort ===
-
-void quick_sort_helper(std::vector<double>& arr, int left, int right) {
-  int i = left, j = right;
-  double pivot = arr[(left + right) / 2];
-  
-  while (i <= j) {
-    while (arr[i] < pivot) i++;
-    while (arr[j] > pivot) j--;
-    
-    if (i <= j) {
-      std::swap(arr[i], arr[j]);
-      i++;
-      j--;
-    }
-  }
-  
-  if (left < j) quick_sort_helper(arr, left, j);
-  if (i < right) quick_sort_helper(arr, i, right);
-}
 
 // === Heap Sort ===
 

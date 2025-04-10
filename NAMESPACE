@@ -2,12 +2,10 @@ useDynLib(M2algorithmique, .registration=TRUE)
 
 export(heap_sort)
 export(merge_sort)
-export(quick_sort)
 export(radix_sort)
 
 export(heap_sort_Rcpp)
 export(merge_sort_Rcpp)
-export(quick_sort_Rcpp)
 export(radix_sort_Rcpp)
 
 importFrom(Rcpp, evalCpp)

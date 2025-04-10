@@ -8,9 +8,6 @@
 // Radix Sort
 std::vector<int> radix_sort(std::vector<int> v, int exp);
 
-// Quick Sort
-void quick_sort_helper(std::vector<double>& arr, int left, int right);
-
 // Heap Sort
 std::vector<double> build_heap(std::vector<double> heap, unsigned int i, unsigned int n);
 

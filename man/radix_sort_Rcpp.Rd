@@ -33,8 +33,8 @@ reverses them at the end to preserve the negative sign.
 The algorithm is efficient for sorting integers when the number of digits is relatively small.
 }
 \examples{
-v <- c(10, 2, 5, -3, 1, 20, -2)
+v <- c(10, 2, 5, 3, 1, 20, 2)
 radix_sort_Rcpp(v)
-# Returns: c(-3, -2, 1, 2, 5, 10, 20)
+# Returns: c(1, 2, 2, 3, 5, 10, 20)
 
 }
