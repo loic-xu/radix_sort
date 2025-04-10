@@ -832,190 +832,37 @@ for (dataset in datasets) {
 library(ggplot2)
 library(tidyr)
 
+# Convertir les résultats en format long
+
 df_long_list <- lapply(names(results_list), function(dataset) {
   df <- results_list[[dataset]]
   df$dataset <- dataset
   pivot_longer(df, cols = -c(k, dataset), names_to = "algo", values_to = "temps")
 })
 
+# Maintenant df_long_list est une liste de dataframes
+# Chaque dataframe correspond à un jeu de données avec une colonne 'k' et une colonne 'temps' pour chaque algorithme
+# Afficher chaque graphique dans une fenêtre séparée
 
-
-```
-
-```{r}
-
-# 1. Données aléatoires
-df_random <- df_long_list[[1]] %>% filter(dataset == "random")
-ggplot(df_random, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Aléatoires",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-```
-
-
-```{r}
-
-# 2. Données triées
-df_sorted <- df_long_list[[2]] %>% filter(dataset == "sorted")
-ggplot(df_sorted, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Triées",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-
-```
-
-
-```{r}
-# 3. Données triées inversées
-df_reverse_sorted <- df_long_list[[3]] %>% filter(dataset == "reverse_sorted")
-ggplot(df_reverse_sorted, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Triées Inversées",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-
-
-```
-
-```{r}
-
-# 4. Données partiellement triées (90%)
-df_sorted_90 <- df_long_list[[4]] %>% filter(dataset == "sorted_90")
-ggplot(df_sorted_90, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Partiellement Triées (90%)",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-```
-
-
-
-## Seconde Approche k = 1:9,  n = 100
-```{r}
-# Définir n à 1000 et k variant de 1 à 9
-n <- 100
-k_values <- 1:9
-
-
-# Simulation pour chaque jeu de données
-results_list <- list()
-
-for (dataset in datasets) {
-  time1 <- numeric(length(k_values))
-  time2 <- numeric(length(k_values))
+for (df_long in df_long_list) {
+  dataset_name <- unique(df_long$dataset)
   
-  for (i in 1:length(k_values)) {
-    k <- k_values[i]
-    data <- generate_dataset(n, dataset, k)
-    
-    time1[i] <- median(replicate(50, one.simu_rcpp(data, func = "merge_sort_Rcpp")))
-    time2[i] <- median(replicate(50, one.simu_rcpp(data, func = "radix_sort_Rcpp")))
-  }
-  
-  results_list[[dataset]] <- data.frame(
-    k = k_values,
-    merge_Rcpp = time1,
-    radix_Rcpp = time2
+  # Plot
+  print(
+    ggplot(df_long, aes(x = k, y = temps, color = algo)) +
+      geom_line(linewidth = 1) +
+      labs(title = paste("Comparaison Rcpp -", dataset_name),
+           x = "Nombre de chiffres (k)",
+           y = "Temps (s)") +
+      theme_minimal() +
+      theme(legend.position = "bottom")
   )
 }
 
-```
-
-```{r}
-
-# Création des graphiques
-library(ggplot2)
-library(tidyr)
-
-df_long_list <- lapply(names(results_list), function(dataset) {
-  df <- results_list[[dataset]]
-  df$dataset <- dataset
-  pivot_longer(df, cols = -c(k, dataset), names_to = "algo", values_to = "temps")
-})
-
 
 
 ```
 
-```{r}
-
-# 1. Données aléatoires
-df_random <- df_long_list[[1]] %>% filter(dataset == "random")
-ggplot(df_random, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Aléatoires",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-```
-
-
-```{r}
-
-# 2. Données triées
-df_sorted <- df_long_list[[2]] %>% filter(dataset == "sorted")
-ggplot(df_sorted, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Triées",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-
-```
-
-
-```{r}
-# 3. Données triées inversées
-df_reverse_sorted <- df_long_list[[3]] %>% filter(dataset == "reverse_sorted")
-ggplot(df_reverse_sorted, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Triées Inversées",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-
-
-```
-
-```{r}
-
-# 4. Données partiellement triées (90%)
-df_sorted_90 <- df_long_list[[4]] %>% filter(dataset == "sorted_90")
-ggplot(df_sorted_90, aes(x = k, y = temps, color = algo)) +
-  geom_line(linewidth = 1) +
-  labs(title = "Comparaison Rcpp - Données Partiellement Triées (90%)",
-       x = "Nombre de chiffres (k)",
-       y = "Temps (s)") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-```
-
-
-```{r}
-
-
-```
 
 ## Evaluation de la complexité
 
