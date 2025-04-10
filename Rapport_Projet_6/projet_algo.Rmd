@@ -329,8 +329,8 @@ library(microbenchmark)
 # Fonction pour exécuter les benchmarks et calculer la médiane
 benchmark_sorting <- function(n, times = 50) {
   # Exécution des benchmarks avec microbenchmark
+  v <- sample(n)
   result <- microbenchmark(
-    v <- sample(n)
     merge_sort = one.simu(n, v, func = "merge_sort_Rcpp"),
     heap_sort = one.simu(n, v, func = "heap_sort_Rcpp"),
     times = times,
