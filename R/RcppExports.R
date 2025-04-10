@@ -2,14 +2,14 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 heap_sort_Rcpp <- function(v_) {
-    .Call(`_M2algorithmique_heap_sort_Rcpp`, v_)
+    .Call(`_RadixSort_heap_sort_Rcpp`, v_)
 }
 
 merge_sort_Rcpp <- function(v_) {
-    .Call(`_M2algorithmique_merge_sort_Rcpp`, v_)
+    .Call(`_RadixSort_merge_sort_Rcpp`, v_)
 }
 
 radix_sort_Rcpp <- function(v_) {
-    .Call(`_M2algorithmique_radix_sort_Rcpp`, v_)
+    .Call(`_RadixSort_radix_sort_Rcpp`, v_)
 }
 

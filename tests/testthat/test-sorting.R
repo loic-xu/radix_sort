@@ -1,8 +1,8 @@
 library(testthat)
-library(Radix_Sort)
+library(RadixSort)
 
 library(testthat)
-library(Radix_Sort)
+library(RadixSort)
 
 #Tests fonctions R
 

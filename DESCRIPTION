@@ -1,4 +1,4 @@
-Package: Radix_Sort
+Package: RadixSort
 Type: Package
 Title: Radix Sort Algorithm and Performance Evaluation
 Version: 1.0

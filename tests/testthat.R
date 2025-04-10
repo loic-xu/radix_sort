@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(Radix_Sort)
+library(RadixSort)
 
-test_check("Radix_Sort")
+test_check("RadixSort")

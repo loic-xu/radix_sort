@@ -38,7 +38,7 @@ devtools::install_github("loic-xu/radix_sort")
 et ses fonctions sont rendues disponibles sur Rstudio ainsi :
 
 ```{r}
-library(Radix_Sort)
+library(RadixSort)
 ```
 
 On simule un petit exemple d'un vecteur `v` de taille `100`
