@@ -552,73 +552,64 @@ Cette partie a pour but de comparer l'algortihme améliorié avec l'algorithme "
 
 ```{r}
 
-################################################
-############# Setup & Données ##################
-################################################
+vector_n <- seq(100, 50100, by = 5000)
+k <- 3
 
-# Définir différentes tailles de n pour tester
-vector_n <- seq(100, 50100, by = 5000)  # Tester de 100 à 50000 avec un pas de 5000
-k <- 3  # Exemple de nombre de chiffres (k = 3 : valeurs entre 100 et 999)
-
-# Types de données à tester
 datasets <- c("random", "sorted", "reverse_sorted", "sorted_90")
 
-# Fonction qui génère des nombres selon le nombre de chiffres (k)
 generate_values <- function(n, k) {
-  min_value <- 1  # Le minimum possible pour k chiffres (par exemple, 100 pour k=3)
-  max_value <- 10^k - 1  # Le maximum possible pour k chiffres (par exemple, 999 pour k=3)
-  return(sample(min_value:max_value, n, replace = TRUE))  # Génère des valeurs entre min_value et max_value
+  min_value <- 1
+  max_value <- 10^k - 1
+  return(sample(min_value:max_value, n, replace = TRUE))
 }
 
-# Fonction qui mesure le temps d'exécution des algorithmes Rcpp de tri
-one.simu_rcpp <- function(n, type = "random", func = "merge_sort_Rcpp") {
-  
-  # Génération des datasets selon l'intervalle défini par k
+generate_dataset <- function(n, type, k) {
   if (type == "random") {
-    v <- generate_values(n, k)  # Valeurs avec n éléments et k chiffres
+    return(generate_values(n, k))
   } else if (type == "sorted") {
-    v <- sort(generate_values(n, k))  # Triées croissantes
+    return(sort(generate_values(n, k)))
   } else if (type == "reverse_sorted") {
-    v <- sort(generate_values(n, k), decreasing = TRUE)  # Triées décroissantes
+    return(sort(generate_values(n, k), decreasing = TRUE))
   } else if (type == "sorted_90") {
-    # Générer 90% triées et 10% aléatoires
-    sorted_part <- sort(generate_values(0.9 * n, k))  # 90% triées
-    random_part <- generate_values(0.1 * n, k)  # 10% aléatoires
-    v <- c(sorted_part, random_part)
+    sorted_part <- sort(generate_values(0.9 * n, k))
+    random_part <- generate_values(0.1 * n, k)
+    return(c(sorted_part, random_part))
   }
-  
-  # Appel des fonctions de tri
-  if (func == "merge_sort_Rcpp") t <- system.time(merge_sort_Rcpp(v))[[1]]
-  if (func == "radix_sort_Rcpp") t <- system.time(radix_sort_Rcpp(v))[[1]]
+}
+```
+
+
+
+```{r}
+one.simu_rcpp <- function(vec, func = "merge_sort_Rcpp") {
+  if (func == "merge_sort_Rcpp") {
+    t <- system.time(merge_sort_Rcpp(vec))[[1]]
+  }
+  if (func == "radix_sort_Rcpp") {
+    t <- system.time(radix_sort_Rcpp(vec))[[1]]
+  }
   
   return(t)
 }
 
-################################################################################################
+```
 
-###########################################################
-############# Simulation à taille variable ##################
-###########################################################
+```{r}
+nbSimus <- length(vector_n)
 
-nbSimus <- length(vector_n)  # Le nombre de tailles de données testées
-
-# Initialiser une liste pour stocker les résultats
 results_list <- list()
 
-# Simulations pour chaque type de dataset
 for (dataset in datasets) {
-  # Init des vecteurs pour stocker les temps
   time1 <- numeric(nbSimus)
   time2 <- numeric(nbSimus)
   
-  # Simulations pour chaque taille de n
   for (i in 1:nbSimus) {
-    # Calculer la médiane des temps pour chaque algorithme sur chaque taille de n
-    time1[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "merge_sort_Rcpp")))
-    time2[i] <- median(replicate(10, one.simu_rcpp(vector_n[i], type = dataset, func = "radix_sort_Rcpp")))
+    data <- generate_dataset(vector_n[i], dataset, k)  # Générer les données avant l'appel de one.simu_rcpp
+    
+    time1[i] <- median(replicate(10, one.simu_rcpp(data, func = "merge_sort_Rcpp")))
+    time2[i] <- median(replicate(10, one.simu_rcpp(data, func = "radix_sort_Rcpp")))
   }
   
-  # Stocker les résultats dans une liste
   results_list[[dataset]] <- data.frame(
     n = vector_n,
     merge_Rcpp = time1,
@@ -626,17 +617,18 @@ for (dataset in datasets) {
   )
 }
 
-# Packages
+```
+
+```{r}
+
 library(ggplot2)
 library(tidyr)
 
-# Transformer les résultats en format long (liste par dataset)
 df_long_list <- lapply(names(results_list), function(dataset) {
   df <- results_list[[dataset]]
   df$dataset <- dataset
   pivot_longer(df, cols = -c(n, dataset), names_to = "algo", values_to = "temps")
 })
-
 
 
 ```
@@ -665,25 +657,229 @@ for (df_long in df_long_list) {
 ```{r}
 
 
-# Afficher chaque graphique dans une fenêtre séparée
-for (df_long in df_long_list) {
-  dataset_name <- unique(df_long$dataset)
+
+
+# Filtrer les données pour les données aléatoires
+df_random <- df_long_list[[1]] %>% filter(dataset == "random")
+
+# Afficher le graphique pour les données aléatoires
+ggplot(df_random, aes(x = n, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Aléatoires",
+       x = "Taille des données",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+```{r}
+
+
+# Filtrer les données pour les données triées
+df_sorted <- df_long_list[[2]] %>% filter(dataset == "sorted")
+
+# Afficher le graphique pour les données triées
+ggplot(df_sorted, aes(x = n, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Triées",
+       x = "Taille des données",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
+```{r}
+# Filtrer les données pour les données triées inversées
+df_reverse_sorted <- df_long_list[[3]] %>% filter(dataset == "reverse_sorted")
+
+# Afficher le graphique pour les données triées inversées
+ggplot(df_reverse_sorted, aes(x = n, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Triées Inversées",
+       x = "Taille des données",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
+```{r}
+# Filtrer les données pour les données partiellement triées (90%)
+df_sorted_90 <- df_long_list[[4]] %>% filter(dataset == "sorted_90")
+
+# Afficher le graphique pour les données partiellement triées
+ggplot(df_sorted_90, aes(x = n, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Partiellement Triées (90%)",
+       x = "Taille des données",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
+
+
+
+
+## Seconde Approche, on fait varier k 
+```{r}
+# Définir n à 1000 et k variant de 1 à 9
+n <- 1000
+k_values <- 1:9
+
+# Types de jeux de données
+datasets <- c("random", "sorted", "reverse_sorted", "sorted_90")
+
+# Fonction de génération des valeurs selon k
+generate_values <- function(n, k) {
+  min_value <- 1
+  max_value <- 10^k - 1
+  return(sample(min_value:max_value, n, replace = TRUE))
+}
+
+# Fonction pour générer le dataset
+generate_dataset <- function(n, type, k) {
+  if (type == "random") {
+    return(generate_values(n, k))
+  } else if (type == "sorted") {
+    return(sort(generate_values(n, k)))
+  } else if (type == "reverse_sorted") {
+    return(sort(generate_values(n, k), decreasing = TRUE))
+  } else if (type == "sorted_90") {
+    sorted_part <- sort(generate_values(0.9 * n, k))
+    random_part <- generate_values(0.1 * n, k)
+    return(c(sorted_part, random_part))
+  }
+}
+
+
+```
+
+```{r}
+# Fonction pour exécuter la simulation de tri
+one.simu_rcpp <- function(vec, func = "merge_sort_Rcpp") {
+  if (func == "merge_sort_Rcpp") {
+    t <- system.time(merge_sort_Rcpp(vec))[[1]]
+  }
+  if (func == "radix_sort_Rcpp") {
+    t <- system.time(radix_sort_Rcpp(vec))[[1]]
+  }
   
-  # Plot
-  print(
-    ggplot(df_long, aes(x = n, y = temps, color = algo)) +
-      geom_line(linewidth = 1) +
-      labs(title = paste("Comparaison Rcpp -", dataset_name),
-           x = "Taille des données",
-           y = "Temps (s)") +
-      theme_minimal() +
-      theme(legend.position = "bottom")
+  return(t)
+}
+
+# Simulation pour chaque jeu de données
+results_list <- list()
+```
+
+```{r}
+for (dataset in datasets) {
+  time1 <- numeric(length(k_values))
+  time2 <- numeric(length(k_values))
+  
+  for (i in 1:length(k_values)) {
+    k <- k_values[i]
+    data <- generate_dataset(n, dataset, k)
+    
+    time1[i] <- median(replicate(10, one.simu_rcpp(data, func = "merge_sort_Rcpp")))
+    time2[i] <- median(replicate(10, one.simu_rcpp(data, func = "radix_sort_Rcpp")))
+  }
+  
+  results_list[[dataset]] <- data.frame(
+    k = k_values,
+    merge_Rcpp = time1,
+    radix_Rcpp = time2
   )
 }
 
 ```
 
+```{r}
 
+# Création des graphiques
+library(ggplot2)
+library(tidyr)
+
+df_long_list <- lapply(names(results_list), function(dataset) {
+  df <- results_list[[dataset]]
+  df$dataset <- dataset
+  pivot_longer(df, cols = -c(k, dataset), names_to = "algo", values_to = "temps")
+})
+
+
+
+```
+
+```{r}
+
+# 1. Données aléatoires
+df_random <- df_long_list[[1]] %>% filter(dataset == "random")
+ggplot(df_random, aes(x = k, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Aléatoires",
+       x = "Nombre de chiffres (k)",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
+```{r}
+
+# 2. Données triées
+df_sorted <- df_long_list[[2]] %>% filter(dataset == "sorted")
+ggplot(df_sorted, aes(x = k, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Triées",
+       x = "Nombre de chiffres (k)",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+```
+
+
+```{r}
+# 3. Données triées inversées
+df_reverse_sorted <- df_long_list[[3]] %>% filter(dataset == "reverse_sorted")
+ggplot(df_reverse_sorted, aes(x = k, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Triées Inversées",
+       x = "Nombre de chiffres (k)",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+
+```
+
+```{r}
+
+# 4. Données partiellement triées (90%)
+df_sorted_90 <- df_long_list[[4]] %>% filter(dataset == "sorted_90")
+ggplot(df_sorted_90, aes(x = k, y = temps, color = algo)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Comparaison Rcpp - Données Partiellement Triées (90%)",
+       x = "Nombre de chiffres (k)",
+       y = "Temps (s)") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
+```{r}
+
+
+```
 
 ## Evaluation de la complexité
 
@@ -731,7 +927,7 @@ cat("Estimated exponent:", slope_r, "\n")  # Affichage de l'exposant estimé
 
 
 
-## Comparaison de la complexité linéaire avec la complexité log-linéaire
+# Comparaison de la complexité linéaire avec la complexité log-linéaire
 
 ```{r}
 benchmark_sorting <- function(func_name, n_values, nbRep) {
