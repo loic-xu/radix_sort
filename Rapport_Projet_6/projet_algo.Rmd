@@ -107,9 +107,16 @@ Ces deux algorithmes sont des choix naturels pour un tri efficace basé sur des 
 
 ## Limites avec R et C++
 
-On va faire des comparaisons pour les deux types d'algorithme en R et C++ pour quantifier leur différence de performance.
+Dans cette section, nous comparons les performances de différentes implémentations des algorithmes de tri en R et en C++. L'objectif est de quantifier les différences de performance entre les versions R et Rcpp (C++), en particulier pour les algorithmes Merge Sort et Heap Sort.
 
-La fonction `one.simu.time` retourne le temps recherché, et `one.simu` sera utilisé par `microbenchmark`
+Pour cela, nous utilisons deux fonctions :
+
+- `one.simu.time` qui mesure le temps d'exécution d'un algorithme spécifique.
+
+- `one.simu`, qui exécute l'algorithme et est utilisé pour les simulations avec `microbenchmark`.
+
+Voici les fonctions définies pour mesurer et exécuter les algorithmes :
+
 
 ```{r}
 one.simu.time <- function(n, v, func = "merge_sort")
@@ -117,8 +124,11 @@ one.simu.time <- function(n, v, func = "merge_sort")
 
   if(func == "merge_sort"){t <- system.time(merge_sort(v))[[3]]}
   if(func == "heap_sort"){t <- system.time(heap_sort(v))[[3]]} 
+  if(func == "radix_sort"){t <- system.time(heap_sort(v))[[3]]} #On défini aussi la fonction pour la suite
   if(func == "merge_sort_Rcpp"){t <- system.time(merge_sort_Rcpp(v))[[3]]}
   if(func == "heap_sort_Rcpp"){t <- system.time(heap_sort_Rcpp(v))[[3]]}
+  if(func == "radix_sort_Rcpp"){t <- system.time(heap_sort_Rcpp(v))[[3]]} #On défini aussi la fonction pour la suite
+
 
   return(t)
 }
@@ -127,14 +137,17 @@ one.simu <- function(n, v, func = "merge_sort")
 {
   if(func == "merge_sort"){merge_sort(v)}
   if(func == "heap_sort"){heap_sort(v)} 
+  if(func == "heap_sort"){heap_sort(v)} 
   if(func == "merge_sort_Rcpp"){merge_sort_Rcpp(v)}
   if(func == "heap_sort_Rcpp"){heap_sort_Rcpp(v)}
+  if(func == "heap_sort_Rcpp"){heap_sort_Rcpp(v)}
+
 }
 ```
 
 ## Un essai
 
-Sur un exemple, on obtient :
+Sur un exemple avec n = 10 000, on obtient les résultats suivants:
 
 ```{r}
 n <- 10000
@@ -147,9 +160,9 @@ one.simu.time(n, v, func = "heap_sort_Rcpp")
 
 ## Simulations avec répétitions
 
-On reproduit ces comparaisons de manière plus robuste:
+On reproduit ces comparaisons de manière plus robuste :
 
-```{r first simu}
+```{r }
 nbSimus <- 10
 
 time1 <- rep(0, nbSimus); time2 <- rep(0, nbSimus);
@@ -183,8 +196,7 @@ cat("Ratio moyen Heap Sort (Rcpp) / Merge Sort (Rcpp) :\n")
 cat(mean(time6) / mean(time2), "\n\n")
 ```
 
-
-On recommence avec `n = 20000`.
+On recommence avec `n = 20000`:
 
 ```{r second simu}
 n <- 20000
@@ -227,9 +239,6 @@ df_heap <- data.frame(
 ```
 
 
-
-
-
 ```{r}
 # Graphe 1 : Merge Sort
 ggplot(df_merge, aes(x = Implémentation, y = Temps, fill = Implémentation)) +
@@ -240,7 +249,6 @@ ggplot(df_merge, aes(x = Implémentation, y = Temps, fill = Implémentation)) +
   scale_fill_manual(values = c("#FFA07A", "#20B2AA")) +
   theme(legend.position = "none")
 ```
-
 
 
 ```{r}
@@ -273,6 +281,10 @@ ggplot(df_avg, aes(x = Algo, y = Temps, group = 1)) +
 
 ```
 
+
+
+
+
 **Conclusion:**
 
 Les tests réalisés montrent des différences de performance notables entre les algorithmes en **R** et en **Rcpp**. 
@@ -288,17 +300,18 @@ En comparant les algorithmes en **R**, on remarque que :
 
 ## Simulations avec `microbenchmark`
 
-Vous avez besoin des packages `microbenchmark` et `ggplot2` pour exécuter les simulations et afficher les résultats (sous forme de diagrammes en violon). Nous comparons `merge_sort_Rcpp` avec `heap_sort_Rcpp` pour des tailles de données `n = 1000` et `n = 10000`.
-
+Nous utilisons les packages `microbenchmark` et `ggplot2` pour exécuter les simulations et afficher les résultats (sous forme de diagrammes en violon). Nous comparons `merge_sort_Rcpp` avec `heap_sort_Rcpp` pour des tailles de données différentes.
 
 
 ```{r}
 library(microbenchmark)
 library(ggplot2)
+library(dplyr)
+library(tidyr)
+
 ```
 
-```{r benchmark, echo = FALSE, warning=FALSE, message=FALSE}
-# Function to run benchmark
+```{r}
 benchmark_sorting <- function(n, times = 70)
 {
   v <- sample(n)
@@ -309,13 +322,14 @@ benchmark_sorting <- function(n, times = 70)
     control = list(gc = FALSE)
   )
 }
-# Run benchmarks for different n values
+
 n_values <- c(500, 5000, 50000)
 results <- lapply(n_values, benchmark_sorting)
 
-# Combine results into a single dataframe with n as an identifier
+
 df_results <- do.call(rbind, Map(cbind, results, n = n_values))
-# Plot with better aesthetics
+
+
 ggplot(df_results, aes(x = expr, y = time / 1e6, fill = expr)) +
   geom_violin(alpha = 0.7) +
   facet_wrap(~n, scales = "free") +
@@ -328,10 +342,9 @@ ggplot(df_results, aes(x = expr, y = time / 1e6, fill = expr)) +
 
 
 
+On peut aussi visualiser ces résultats sous forme de tableau :
 
-
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
-library(dplyr)
+```{r}
 df_results %>%
   group_by(n, expr) %>%
   summarise(
@@ -350,13 +363,7 @@ df_results %>%
 
 
 ```{r}
-
-library(ggplot2)
-library(microbenchmark)
-
-# Fonction pour exécuter les benchmarks et calculer la médiane
 benchmark_sorting <- function(n, times = 50) {
-  # Exécution des benchmarks avec microbenchmark
   v <- sample(n)
   result <- microbenchmark(
     merge_sort = one.simu(n, v, func = "merge_sort_Rcpp"),
@@ -365,20 +372,16 @@ benchmark_sorting <- function(n, times = 50) {
     control = list(gc = FALSE)
   )
   
-  # Calcul de la médiane des temps pour chaque algorithme
   median_result <- aggregate(time ~ expr, data = result, FUN = mean)
   return(median_result)
 }
 
-# Exécution des benchmarks pour différentes tailles de n
 n_values <- seq(100, 50100, by = 5000)  # Tester de 100 à 50000 avec un pas de 5000
 
 results <- lapply(n_values, benchmark_sorting)
 
-# Combiner les résultats dans un seul dataframe avec n comme identifiant
 df_results <- do.call(rbind, Map(function(x, n) cbind(x, n = n), results, n_values))
 
-# Affichage de la courbe avec médiane des temps d'exécution
 ggplot(df_results, aes(x = n, y = time / 1e6, color = expr, group = expr)) + 
   geom_line(size = 1) + 
   geom_point() + 
@@ -388,8 +391,6 @@ ggplot(df_results, aes(x = n, y = time / 1e6, color = expr, group = expr)) +
        color = "Algorithme") + 
   theme_minimal() + 
   scale_x_continuous(breaks = n_values)
-
-
 
 ```
 
@@ -412,7 +413,7 @@ Nous allons maintenant passer à l'étude de notre **solution améliorée** : le
 
 
 
-# Solution améliorée moderne : radix sort
+# Solution améliorée moderne : Radix sort
 
 ## Présentation de la stratégie algorithmique
 
@@ -451,33 +452,6 @@ Dans le meilleur des cas, si **k** est suffisamment petit (par exemple, pour les
 
 ## Limites avec R et C++
 
-Dans cette partie, on redéfini 'one.simu.time' et 'one.simu' mais cette fois avec radix sort, et on garde Merge sort car nous en aurons besoin dans la suite de l'étude.
-
-```{r}
-
-one.simu.time <- function(n, v, func = "radix_sort")
-{
-  if(func == "radix_sort"){t <- system.time(radix_sort(v))[[3]]}
-  if(func == "merge_sort"){t <- system.time(merge_sort(v))[[3]]}
-  if(func == "radix_sort_Rcpp"){t <- system.time(radix_sort_Rcpp(v))[[3]]}
-  if(func == "merge_sort_Rcpp"){t <- system.time(merge_sort_Rcpp(v))[[3]]}
-
-  return(t)
-}
-
-one.simu <- function(n, v, func = "radix_sort")
-{
-
-  if(func == "radix_sort"){merge_sort(v)}
-  if(func == "merge_sort"){merge_sort(v)}
-  if(func == "radix_sort_Rcpp"){merge_sort_Rcpp(v)}
-  if(func == "merge_sort_Rcpp"){merge_sort_Rcpp(v)}
-}
-
-```
-
-
-
 ### Exemple
 
 Comme précédement, on fait le test sur un exemple :
@@ -495,7 +469,7 @@ one.simu.time(n, v, func = "radix_sort_Rcpp")
 
 On reproduit ces comparaisons de manière plus robuste:
 
-```{r first simu}
+```{r}
 nbSimus <- 10
 
 time1 <- rep(0, nbSimus); time2 <- rep(0, nbSimus);
@@ -509,9 +483,9 @@ mean(time1)/mean(time2)
 
 ```
 
-On affiche la courbe de tps (C++) / tps (R) ainsi qu'une autre courbe avec les deux tps (R et C++), on fait varier n entre 1000 et 50000 avec un pas de 5000.
+On affiche la courbe de la moyenne des temps en R et en C++ avec n variant de 100 à 50100.
 
-```{r first simu}
+```{r }
 # Fonction pour exécuter les benchmarks et calculer la moyenne
 benchmark_radix <- function(n, nbSimus = 50) {
   time1 <- rep(0, nbSimus)
@@ -524,29 +498,21 @@ benchmark_radix <- function(n, nbSimus = 50) {
     time2[i] <- one.simu.time(n, v, func = "radix_sort_Rcpp")
   }
   
-  # Retourner la moyenne des temps d'exécution
   return(c(mean(time1), mean(time2)))
 }
 
-# Valeurs de n
 n_values <- seq(1000, 50100, by = 5000)
 
-# Exécution des benchmarks pour chaque valeur de n
 results <- t(sapply(n_values, function(n) benchmark_radix(n)))
 
-# Conversion en data.frame avec n comme colonne
 df_results <- data.frame(
   n = n_values,
   radix_R = results[, 1],  # Moyenne des temps pour Radix Sort (R)
   radix_Rcpp = results[, 2]  # Moyenne des temps pour Radix Sort (Rcpp)
 )
 
-
-# Tracer les courbes
-library(ggplot2)
-
 # Tracer le graphique pour les temps d'exécution de Radix Sort (R vs Rcpp)
-p1 <- ggplot(df_results, aes(x = n)) +
+p <- ggplot(df_results, aes(x = n)) +
   geom_line(aes(y = radix_R, color = "Radix Sort (R)"), size = 1) +
   geom_line(aes(y = radix_Rcpp, color = "Radix Sort (Rcpp)"), size = 1) +
   labs(title = "Temps d'exécution de Radix Sort : R vs Rcpp",
@@ -556,27 +522,34 @@ p1 <- ggplot(df_results, aes(x = n)) +
   theme_minimal()
 
 # Afficher le graphique des temps d'exécution
-print(p1)
-
+print(p)
 
 ```
-
-
-
-
 
 
 **Conclusion**
 
 
-**A faire**
+Pour un vecteur de taille `n = 10000`, l'algorithme **Radix Sort** en **C++** est environ **27.4717 fois plus rapide** que sa version en **R**. Cette différence de performance démontre l'efficacité de l'optimisation en C++ par rapport à l'exécution en R pour des algorithmes de tri comme le Radix Sort.
+
+En visualisant cette différence à travers un graphique, nous voyons clairement l'écart de performance entre les deux implémentations. Le graphique illustre le gain significatif que l'optimisation en C++ peut apporter, surtout pour des jeux de données plus grands.
+
+Comme précédement, avec les tris naïfs, on remarque une grande différence d'efficacité entre R et C++. 
 
 
-## Comparaisons Radix Sort et merge Sort
+## Comparaisons Radix Sort et Merge Sort
+
+Cette section a pour objectif de comparer les performances de l'algorithme **Radix Sort** dans ses deux versions : l'implémentation **naïve** (en R) et l'implémentation **optimisée** (en C++). Nous allons analyser ces performances en affichant à la fois des **violin plots** et des **courbes des moyennes de temps d'exécution**. Ces graphiques nous permettront de visualiser et de comparer l'efficacité des deux algorithmes.
+
+### Objectif de la comparaison
+
+L'objectif principal de cette comparaison est de déterminer le moment où l'algorithme optimisé en C++ devient plus performant que la version naïve en R. Plus précisément, nous cherchons à identifier **le point de croisement des courbes** des temps d'exécution, c'est-à-dire le moment où la version C++ surpasse la version R en termes de rapidité.
+
 
 ### Première comparaison
 
-Cette partie a pour but de comparer l'algortihme améliorié avec l'algorithme "naïf" étudié précédement. Pour cela on va afficher les violins. On cherche à savoir quand est ce que les courbes des deux algorithmes se croisent.
+Dans un premier temps, nous générons différents jeux de données pour évaluer les performances des algorithmes dans divers contextes. Ces jeux de données incluent des vecteurs **aléatoires**, **inversés**, **triés** et **presque triés** (avec 90% des éléments déjà triés). Nous choisissons un paramètre fixe \( k = 3 \), tandis que la taille du vecteur \( n \) varie entre 100 et 50 100. Cette variation de la taille des données nous permettra d'analyser comment chaque algorithme se comporte en fonction de l'ordre et de la taille des éléments à trier.
+
 
 ```{r}
 
@@ -619,7 +592,6 @@ one.simu_rcpp <- function(vec, func = "merge_sort_Rcpp") {
   
   return(t)
 }
-
 ```
 
 ```{r}
@@ -648,17 +620,11 @@ for (dataset in datasets) {
 ```
 
 ```{r}
-
-library(ggplot2)
-library(tidyr)
-
 df_long_list <- lapply(names(results_list), function(dataset) {
   df <- results_list[[dataset]]
   df$dataset <- dataset
   pivot_longer(df, cols = -c(n, dataset), names_to = "algo", values_to = "temps")
 })
-
-
 ```
 
 
@@ -683,10 +649,6 @@ for (df_long in df_long_list) {
 
 
 ```{r}
-
-
-
-
 # Filtrer les données pour les données aléatoires
 df_random <- df_long_list[[1]] %>% filter(dataset == "random")
 
@@ -700,9 +662,9 @@ ggplot(df_random, aes(x = n, y = temps, color = algo)) +
   theme(legend.position = "bottom")
 
 ```
+
+
 ```{r}
-
-
 # Filtrer les données pour les données triées
 df_sorted <- df_long_list[[2]] %>% filter(dataset == "sorted")
 
@@ -714,7 +676,6 @@ ggplot(df_sorted, aes(x = n, y = temps, color = algo)) +
        y = "Temps (s)") +
   theme_minimal() +
   theme(legend.position = "bottom")
-
 ```
 
 
@@ -730,7 +691,6 @@ ggplot(df_reverse_sorted, aes(x = n, y = temps, color = algo)) +
        y = "Temps (s)") +
   theme_minimal() +
   theme(legend.position = "bottom")
-
 ```
 
 
@@ -750,59 +710,26 @@ ggplot(df_sorted_90, aes(x = n, y = temps, color = algo)) +
 ```
 
 
+**Conclusion**
 
+Les résultats montrent que, pour un \( k \) fixe et \( n \) variable, **Radix Sort** s'avère être le plus performant. Cependant, les courbes des temps d'exécution des deux algorithmes ne se croisent pas dans ce scénario. Cela nous amène à adopter une nouvelle approche, en tenant compte des complexités théoriques des algorithmes.
+
+En effet, le Radix Sort a une complexité de \( O(n \cdot k) \), tandis que le Merge Sort présente une complexité de \( O(n \log n) \). Selon cette analyse théorique, les courbes des temps d'exécution devraient se croiser lorsque \( k = \log n \). 
+
+Dans cette seconde approche, nous conservons les quatre jeux de données précédemment utilisés (aléatoire, inversé, trié et presque trié) et fixons \( x = 1000 \), avec \( k \) variant entre 1 et 9. Cette nouvelle configuration permettra de tester la validité de la relation théorique et d'observer à quel moment les performances des deux algorithmes se rejoignent.
 
 
 ## Seconde Approche k = 1:9,  n = 1000
+
 ```{r}
-# Définir n à 1000 et k variant de 1 à 9
 n <- 1000
 k_values <- 1:9
 
-# Types de jeux de données
-datasets <- c("random", "sorted", "reverse_sorted", "sorted_90")
-
-# Fonction de génération des valeurs selon k
-generate_values <- function(n, k) {
-  min_value <- 10^(k-1)
-  max_value <- 10^k - 1
-  return(sample(min_value:max_value, n, replace = TRUE))
-}
-
-# Fonction pour générer le dataset
-generate_dataset <- function(n, type, k) {
-  if (type == "random") {
-    return(generate_values(n, k))
-  } else if (type == "sorted") {
-    return(sort(generate_values(n, k)))
-  } else if (type == "reverse_sorted") {
-    return(sort(generate_values(n, k), decreasing = TRUE))
-  } else if (type == "sorted_90") {
-    sorted_part <- sort(generate_values(0.9 * n, k))
-    random_part <- generate_values(0.1 * n, k)
-    return(c(sorted_part, random_part))
-  }
-}
-
-
-```
-
-```{r}
-# Fonction pour exécuter la simulation de tri
-one.simu_rcpp <- function(vec, func = "merge_sort_Rcpp") {
-  if (func == "merge_sort_Rcpp") {
-    t <- system.time(merge_sort_Rcpp(vec))[[1]]
-  }
-  if (func == "radix_sort_Rcpp") {
-    t <- system.time(radix_sort_Rcpp(vec))[[1]]
-  }
-  
-  return(t)
-}
-
 # Simulation pour chaque jeu de données
 results_list <- list()
+
 ```
+
 
 ```{r}
 for (dataset in datasets) {
@@ -828,21 +755,11 @@ for (dataset in datasets) {
 
 ```{r}
 
-# Création des graphiques
-library(ggplot2)
-library(tidyr)
-
-# Convertir les résultats en format long
-
 df_long_list <- lapply(names(results_list), function(dataset) {
   df <- results_list[[dataset]]
   df$dataset <- dataset
   pivot_longer(df, cols = -c(k, dataset), names_to = "algo", values_to = "temps")
 })
-
-# Maintenant df_long_list est une liste de dataframes
-# Chaque dataframe correspond à un jeu de données avec une colonne 'k' et une colonne 'temps' pour chaque algorithme
-# Afficher chaque graphique dans une fenêtre séparée
 
 for (df_long in df_long_list) {
   dataset_name <- unique(df_long$dataset)
@@ -859,9 +776,21 @@ for (df_long in df_long_list) {
   )
 }
 
-
-
 ```
+
+
+
+
+
+
+**Conclusion**
+
+
+
+
+
+
+
 
 
 ## Evaluation de la complexité
@@ -906,149 +835,6 @@ Ensuite, une régression linéaire est effectuée sur les données de temps (mea
 
 # Comparaison de la complexité linéaire avec la complexité log-linéaire
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-
-```{r}
-
-
-
-
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r}
-
-# Mesure le temps moyen d'exécution de func sur des vecteurs aléatoires
-one.simu.time.multi <- function(n, func, d = 1, reps = 100) {
-  total_time <- system.time({
-    for (i in 1:reps) {
-      v <- sample(0:(10^d - 1), n, replace = TRUE)
-      do.call(func, list(v))
-    }
-  })["elapsed"]
-  total_time / reps
-}
-
-benchmark_sorting <- function(func_name, n_values, nbRep = 10, d = 1, reps_per_sim = 100) {
-  results <- sapply(n_values, function(n) {
-    times <- replicate(nbRep, {
-      one.simu.time.multi(n, func = func_name, d = d, reps = reps_per_sim)
-    })
-    c(mean_time = mean(times), sd_time = sd(times))
-  })
-
-  data.frame(n = n_values, mean_time = results["mean_time", ], sd_time = results["sd_time", ])
-}
-# Paramètres
-nbRep <- 10
-reps_per_sim <- 100
-d <- 1  # nombre de chiffres max (ex : d = 3 → valeurs entre 0 et 999)
-
-# Tailles de données testées
-vector_n_radix <- seq(5000, 500000, by = 25000)
-
-# Lancer le benchmark
-res_Radix <- benchmark_sorting("radix_sort_Rcpp", vector_n_radix, nbRep, d, reps_per_sim)
-
-
-# Modèle de régression log-log
-model <- lm(log(res_Radix$mean_time) ~ log(res_Radix$n))
-slope_r <- coef(model)[2]
-cat("Estimated exponent (slope) =", round(slope_r, 4), "\n")
-
-library(ggplot2)
-
-ggplot(res_Radix, aes(x = n, y = mean_time)) +
-  geom_point(color = "red", size = 2) +
-  scale_x_log10() +
-  scale_y_log10() +
-  labs(title = paste("Benchmark Radix Sort (d =", d, ")"),
-       x = "Taille des données (n)",
-       y = "Temps moyen (s)") +
-  geom_smooth(method = "lm", formula = y ~ x, color = "blue", se = FALSE) +
-  geom_abline(intercept = coef(model)[1], slope = coef(model)[2], 
-              color = "green", linetype = "dashed") +
-  annotate("text", x = max(res_Radix$n) * 0.5, y = min(res_Radix$mean_time),
-           label = paste("Slope =", round(slope_r, 4)),
-           color = "black", size = 5, hjust = 0) +
-  theme_minimal()
-
-```
-
-
-
-<<<<<<< HEAD
 
 
 
@@ -1122,209 +908,6 @@ ggplot(res_all, aes(x = n, y = mean_time, color = algo)) +
 
 
 
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-
-```{r}
-
-
-
-
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# En R
-
-```{r, echo=FALSE}
-n <- 10^7
-vec <- sample(1:100, n, replace = TRUE)
-start_time <- Sys.time()
-sorted_merge <- merge_sort(vec)
-end_time <- Sys.time()
-print(as.numeric(difftime(end_time, start_time, units = "secs")))
-```
-
-# En C++
-
-```{r}
-n <- 10^9
-vec <- sample(1:100, n, replace = TRUE)
-start_time <- Sys.time()
-sorted_merge <- merge_sort_Rcpp(vec)
-end_time <- Sys.time()
-print(as.numeric(difftime(end_time, start_time, units = "secs")))
-```
-
-```{r, echo=FALSE}
-
-
-# Comparaison des performances
-set.seed(42)
-n <- 10000
-sizes <- seq(from = 100, to = n, length.out = 100)
-
-times_fusion <- numeric(length(sizes))
-times_radix <- numeric(length(sizes))
-
-for (i in seq_along(sizes)) {
-  vec <- sample(1:100, sizes[i], replace = TRUE)
-  
-  # Temps pour le tri fusion
-  start_time <- Sys.time()
-  sorted_fusion <- merge_sort(vec)
-  end_time <- Sys.time()
-  times_fusion[i] <- as.numeric(difftime(end_time, start_time, units = "secs"))
-  
-  # Temps pour le tri par base
-  start_time <- Sys.time()
-  sorted_radix <- radix_sort(vec)
-  end_time <- Sys.time()
-  times_radix[i] <- as.numeric(difftime(end_time, start_time, units = "secs"))
-}
-
-# Tracer un graphique avec l'axe X en échelle logarithmique
-plot(sizes, times_fusion, type = "o", log = "x", col = "red", 
-     xlab = "Taille du vecteur (log)", ylab = "Temps (s)", 
-     main = "Comparaison des performances des algorithmes")
-
-
-lines(sizes, times_radix, type = "o", col = "blue", pch = 16)
-legend("topleft", legend = c("Tri fusion", "Tri par base"), col = c("red", "blue"), pch = 16)
-```
-
-```{r}
-# Transformation pour linéariser O(n log n)
-sizes_nlogn <- sizes * log2(sizes)
-
-# Régression linéaire
-model_fusion_nlogn <- lm(times_fusion ~ sizes_nlogn)
-
-# Extraire les coefficients
-coef_fusion <- coef(model_fusion_nlogn)
-slope <- coef_fusion[2]
-
-# Tracer le nuage de points
-plot(sizes_nlogn, times_fusion, col = "red", pch = 16,
-     xlab = "n log(n)", ylab = "Temps (s)", 
-     main = "Régression linéaire pour Tri Fusion (O(n log n))")
-
-# Tracer la droite de régression
-abline(model_fusion_nlogn, col = "black", lwd = 2)
-
-# Afficher la pente sur le graphe
-text(x = max(sizes_nlogn) * 0.6, 
-     y = max(times_fusion) * 0.9, 
-     labels = paste0("Pente = ", round(slope, 10)), 
-     col = "black", cex = 0.9, pos = 4)
-
-summary(model_fusion_nlogn)
-```
-
-
-
-
-
-```{r}
-# Ajustement de la régression linéaire pour le tri par base
-model_radix <- lm(times_radix ~ sizes)
-
-# Extraire la pente (coefficient directeur)
-slope <- coef(model_radix)[2]
-intercept <- coef(model_radix)[1]
-
-# Affichage du nuage de points
-plot(sizes, times_radix, col = "blue", pch = 16, 
-     xlab = "Taille du vecteur", ylab = "Temps (s)", 
-     main = "Régression linéaire Tri par Base (O(n))")
-
-# Ajout de la droite de régression
-abline(model_radix, col = "black", lwd = 2)
-
-# Affichage de la pente sur le graphique
-text(x = max(sizes) * 0.6, y = max(times_radix) * 0.9, 
-     labels = paste("Pente =", round(slope, 8)), 
-     col = "black", cex = 0.9, pos = 4)
-
-
-
-```
-
-
-```{r}
-slope <- coef(model_radix)[2]
-print(slope)
-
-r2 <- summary(model_radix)$r.squared
-print(paste("R² =", r2))
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
+**Conclusion**
 
 
