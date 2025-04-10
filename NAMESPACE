@@ -1,4 +1,4 @@
-useDynLib(M2algorithmique, .registration=TRUE)
+useDynLib(Radix_Sort, .registration=TRUE)
 
 export(heap_sort)
 export(merge_sort)
