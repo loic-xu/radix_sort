@@ -1,57 +1,97 @@
-# Projet : Radix Sort
+# Package RadixSort
 
-## Tâches à réaliser
+## Aperçu
 
-### Rapport (5 points)
-Un rapport au format Rmd, avec une sortie en PDF ou HTML.
+Le package `RadixSort` est conçu pour comparer les performances de différents algorithmes de tri, avec un accent particulier sur l'algorithme **Radix Sort**. Ce package fournit des implémentations de Radix Sort, Merge Sort et Heap Sort à la fois en R et en C++ optimisé (via Rcpp). L'objectif est d'évaluer l'efficacité de ces algorithmes dans diverses conditions et tailles de données.
 
-### Présentation (15 points)
-Une présentation au format Beamer (Rmd) ou PowerPoint qui explique clairement la démarche et les résultats du projet.
+## Installation
 
-Le rapport doit démontrer que la démarche a été suivie de manière rigoureuse, tandis que la présentation doit prouver votre capacité à expliquer les concepts de manière claire et concise.
+Pour installer le package `RadixSort`, utilisez la commande suivante dans R :
 
-Le rapport et le script R doivent être partagés avec la promotion entière.
+```{r}
+devtools::install_github("loic-xu/radix_sort")
+```
+## Utilisation
+Après avoir installé le package, vous pouvez le charger dans votre session R en utilisant :
 
-### Package Fonctionnel (Obligatoire)
-Le projet doit inclure un package fonctionnel (par exemple, M2algorithmique) avec les éléments suivants :
-1. Solution naïve en R et C++
-2. Solution améliorée en R et C++
-3. Évaluation des simulations de la complexité
-4. Un package bien documenté sur GitHub
+```{r}
 
----
+library(RadixSort)
 
-## Démarche
+```
 
-### A) Présentation du problème
+## Exemple
 
-- **Objectif** : Définir ce que nous cherchons à résoudre avec l'algorithme de tri Radix.
-  
-### B) Explication de la difficulté algorithmique
+```{r}
 
-1. **Problème combinatoire** : Expliquer la nature combinatoire du problème de tri.
-2. **Solution naïve** : Présenter la solution naïve en R et C++.
-3. **Limite de la solution naïve** : Analyser la performance de la solution naïve sur des tailles de problème croissantes (notamment quand `n` devient trop grand, et le temps d'exécution dépasse un seuil comme 5 minutes).
+# Générer un vecteur aléatoire de taille 100
+n <- 100
+v <- sample(n)
 
-### C) Solution améliorée moderne
+# Trier le vecteur en utilisant différents algorithmes
+cat("Vecteur original :\n")
+print(v)
+cat("\n")
 
-1. **Stratégie algorithmique** : Présenter la solution améliorée du Radix Sort.
-2. **Simulations comparatives** :
-   - Comparer les temps d'exécution entre la solution naïve et la solution améliorée.
-   - Comparer les temps d'exécution du code en R et en C++.
-3. **Complexité attendue** : Effectuer des simulations qui montrent que la complexité attendue de l'algorithme est bien respectée (effectuer une régression linéaire pour analyser la complexité).
-4. **Comparaison avec un autre algorithme de tri** : Comparer les performances du Radix Sort avec un tri ayant une complexité en `n log(n)` de votre choix.
-   - Identifier les cas favorables pour chaque algorithme.
-   - Déterminer la taille à partir de laquelle les courbes de temps d'exécution se croisent entre les algorithmes.
-   - Distinction entre la complexité linéaire et log-linéaire via des simulations.
+cat("Trié avec Merge Sort :\n")
+print(merge_sort(v))
+cat("\n")
 
----
+cat("Trié avec Heap Sort :\n")
+print(heap_sort(v))
+cat("\n")
 
-## Structure du package
+cat("Trié avec Radix Sort :\n")
+print(radix_sort(v))
+cat("\n")
 
-- **R Code** : Le code source en R pour la solution naïve et améliorée.
-- **C++ Code** : Le code source en C++ pour la solution naïve et améliorée.
-- **Documentation** : Documentation complète pour le package sur GitHub.
+cat("Trié avec Merge Sort (Rcpp) :\n")
+print(merge_sort_Rcpp(v))
+cat("\n")
 
----
+cat("Trié avec Heap Sort (Rcpp) :\n")
+print(heap_sort_Rcpp(v))
+cat("\n")
 
+cat("Trié avec Radix Sort (Rcpp) :\n")
+print(radix_sort_Rcpp(v))
+cat("\n")
+
+```
+
+
+## Fonctionnalités
+
+# Tri Algorithmique et Benchmarking
+
+- **Algorithmes de tri multiples** : Implémentations de plusieurs algorithmes de tri, y compris Merge Sort, Heap Sort et Radix Sort.
+- **Performances optimisées** : Les algorithmes sont implémentés en C++ via Rcpp pour des performances accrues.
+- **Outils de benchmarking** : Fournit des fonctions pour mesurer et comparer le temps d'exécution des différents algorithmes de tri.
+- **Visualisation** : Outils pour visualiser les performances des algorithmes de tri en utilisant `ggplot2`.
+
+## Résultats Clés
+
+### Comparaison des Performances
+
+- **Radix Sort** : Affiche une complexité proche de la linéaire, le rendant particulièrement efficace pour des ensembles de données de taille modérée ou avec des distributions spécifiques.
+- **Merge Sort et Heap Sort** : Ces algorithmes ont une complexité de \( O(n \log n) \), ce qui les rend adaptés aux grands ensembles de données.
+- **Implémentations en C++** : Les versions en C++ sont significativement plus rapides que leurs homologues en R, soulignant l'importance de l'optimisation pour les tâches computationnelles intensives.
+
+### Points de Croisement
+
+- Théoriquement, les courbes de performance de Radix Sort et Merge Sort devraient se croiser lorsque \( k = \log(n) \). Cependant, les tests pratiques montrent que les points d'intersection sont plus complexes et dépendent des caractéristiques spécifiques des données.
+
+### Analyse de la Complexité
+
+- **Radix Sort** : Présente une complexité proche de la linéaire, avec une pente plus raide dans les courbes de performance.
+- **Merge Sort** : Affiche une complexité log-linéaire, avec une pente plus douce, indiquant une croissance plus lente du temps d'exécution.
+
+## Travaux Futurs
+
+- **Algorithmes supplémentaires** : Ajouter et tester d'autres algorithmes de tri, comme Quick Sort.
+- **Données réelles** : Analyser les performances des algorithmes sur des jeux de données réels pour mieux comprendre leur comportement en pratique.
+- **MSD Radix Sort** : Explorer la variante Most Significant Digit (MSD) de Radix Sort pour d'éventuelles améliorations des performances.
+
+## Conclusion
+
+Ce package RadixSort offre un ensemble complet d'outils pour comparer et analyser les algorithmes de tri. Il met en évidence l'importance de l'optimisation et de la sélection des algorithmes en fonction des cas d'utilisation spécifiques et des caractéristiques des données.
