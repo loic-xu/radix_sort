@@ -976,213 +976,118 @@ ggplot(df_all, aes(x = log(n), y = log(mean_time), color = algo)) +
 
 
 
-
 ```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
-```{r}
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# En R
-
-```{r, echo=FALSE}
-n <- 10^7
-vec <- sample(1:100, n, replace = TRUE)
-start_time <- Sys.time()
-sorted_merge <- merge_sort(vec)
-end_time <- Sys.time()
-print(as.numeric(difftime(end_time, start_time, units = "secs")))
-```
-
-# En C++
-
-```{r}
-n <- 10^9
-vec <- sample(1:100, n, replace = TRUE)
-start_time <- Sys.time()
-sorted_merge <- merge_sort_Rcpp(vec)
-end_time <- Sys.time()
-print(as.numeric(difftime(end_time, start_time, units = "secs")))
-```
-
-```{r, echo=FALSE}
-
 # Comparaison des performances
 set.seed(42)
 n <- 10000
-sizes <- seq(from = 100, to = n, length.out = 50)
+sizes <- seq(from = 100, to = n, length.out = 100)
 
-times_merge <- numeric(length(sizes))
+times_fusion <- numeric(length(sizes))
 times_radix <- numeric(length(sizes))
 
 for (i in seq_along(sizes)) {
   vec <- sample(1:100, sizes[i], replace = TRUE)
   
-  # Temps pour le tri merge
+  # Temps pour le tri fusion
   start_time <- Sys.time()
-  sorted_merge <- merge_sort(vec)
+  sorted_fusion <- merge_sort(vec)
   end_time <- Sys.time()
-  times_merge[i] <- as.numeric(difftime(end_time, start_time, units = "secs"))
+  times_fusion[i] <- as.numeric(difftime(end_time, start_time, units = "secs"))
   
-  # Temps pour le tri par merge
+  # Temps pour le tri par base
   start_time <- Sys.time()
-  sorted_radix <- tri_merge(vec)
+  sorted_radix <- radix_sort(vec)
   end_time <- Sys.time()
   times_radix[i] <- as.numeric(difftime(end_time, start_time, units = "secs"))
 }
 
 # Tracer un graphique avec l'axe X en échelle logarithmique
-plot(sizes, times_merge, type = "o", log = "x", col = "red", 
+plot(sizes, times_fusion, type = "o", log = "x", col = "red", 
      xlab = "Taille du vecteur (log)", ylab = "Temps (s)", 
      main = "Comparaison des performances des algorithmes")
 
 
 lines(sizes, times_radix, type = "o", col = "blue", pch = 16)
-legend("topleft", legend = c("Tri merge", "Radix Sort"), col = c("red", "blue"), pch = 16)
-
+legend("topleft", legend = c("Tri fusion", "Tri par base"), col = c("red", "blue"), pch = 16)
 ```
 
-```{r, echo=FALSE}
-# Ajustement de la régression linéaire pour le Radix Sort
+```{r}
+# Transformation pour linéariser O(n log n)
+sizes_nlogn <- sizes * log2(sizes)
+
+# Régression linéaire
+model_fusion_nlogn <- lm(times_fusion ~ sizes_nlogn)
+
+# Extraire les coefficients
+coef_fusion <- coef(model_fusion_nlogn)
+slope <- coef_fusion[2]
+
+# Tracer le nuage de points
+plot(sizes_nlogn, times_fusion, col = "red", pch = 16,
+     xlab = "n log(n)", ylab = "Temps (s)", 
+     main = "Régression linéaire pour Tri Fusion (O(n log n))")
+
+# Tracer la droite de régression
+abline(model_fusion_nlogn, col = "black", lwd = 2)
+
+# Afficher la pente sur le graphe
+text(x = max(sizes_nlogn) * 0.6, 
+     y = max(times_fusion) * 0.9, 
+     labels = paste0("Pente = ", round(slope, 10)), 
+     col = "black", cex = 0.9, pos = 4)
+
+summary(model_fusion_nlogn)
+```
+
+
+
+
+
+```{r}
+# Ajustement de la régression linéaire pour le tri par base
 model_radix <- lm(times_radix ~ sizes)
+
+# Extraire la pente (coefficient directeur)
+slope <- coef(model_radix)[2]
+intercept <- coef(model_radix)[1]
 
 # Affichage du nuage de points
 plot(sizes, times_radix, col = "blue", pch = 16, 
      xlab = "Taille du vecteur", ylab = "Temps (s)", 
-     main = "Régression linéaire Radix Sort (O(n))")
+     main = "Régression linéaire Tri par Base (O(n))")
 
 # Ajout de la droite de régression
 abline(model_radix, col = "black", lwd = 2)
 
+# Affichage de la pente sur le graphique
+text(x = max(sizes) * 0.6, y = max(times_radix) * 0.9, 
+     labels = paste("Pente =", round(slope, 8)), 
+     col = "black", cex = 0.9, pos = 4)
+
+
 
 ```
+
 
 ```{r}
-set.seed(42)
-n <- 100  # Taille des listes
-k_values <- 1:15  # Valeurs de k
+slope <- coef(model_radix)[2]
+print(slope)
 
-times_merge <- numeric(length(k_values))
-times_radix <- numeric(length(k_values))
-
-for (k in k_values) {
-  # Générer une liste d'entiers entre 0 et 10^k - 1
-  vec <- sample((10^(k-1) - 1):(10^k - 1), n, replace = TRUE)
-  
-  # Temps pour le tri merge O(n log n)
-  start_time <- Sys.time()
-  sorted_merge <- merge_sort(vec)
-  end_time <- Sys.time()
-  times_merge[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
-  
-  # Temps pour le Radix Sort O(n k)
-  start_time <- Sys.time()
-  sorted_radix <- radix_sort(vec)
-  end_time <- Sys.time()
-  times_radix[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
-}
-
-# Tracer les performances
-plot(k_values, times_merge, type = "o", col = "red", xlab = "Nombre de chiffres k", 
-     ylab = "Temps (s)", main = "Complexité des tris en fonction de k", pch = 16, ylim = range(c(times_merge, times_radix)))
-
-lines(k_values, times_radix, type = "o", col = "blue", pch = 16)
-
-legend("topleft", legend = c("Tri merge O(n log n)", "Radix Sort O(n k)"), 
-       col = c("red", "blue"), pch = 16)
-
-
+r2 <- summary(model_radix)$r.squared
+print(paste("R² =", r2))
 ```
 
-```{r}
-set.seed(42)
-n <- 1000   # Taille des listes
-k_values <- 1:15  # Valeurs de k
 
-times_merge <- numeric(length(k_values))
-times_radix <- numeric(length(k_values))
 
-for (k in k_values) {
-  # Générer une liste d'entiers entre 0 et 10^k - 1
-  vec <- sample((10^(k-1) - 1):(10^k - 1), n, replace = TRUE)
-  
-  # Temps pour le tri merge O(n log n)
-  start_time <- Sys.time()
-  sorted_merge <- merge_sort(vec)
-  end_time <- Sys.time()
-  times_merge[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
-  
-  # Temps pour le Radix Sort O(n k)
-  start_time <- Sys.time()
-  sorted_radix <- radix_sort(vec)
-  end_time <- Sys.time()
-  times_radix[k] <- as.numeric(difftime(end_time, start_time, units = "secs"))
-}
 
-# Tracer les performances
-plot(k_values, times_merge, type = "o", col = "red", xlab = "Nombre de chiffres k", 
-     ylab = "Temps (s)", main = "Complexité des tris en fonction de k", pch = 16, ylim = range(c(times_merge, times_radix)))
 
-lines(k_values, times_radix, type = "o", col = "blue", pch = 16)
 
-legend("topleft", legend = c("Tri merge O(n log n)", "Radix Sort O(n k)"), 
-       col = c("red", "blue"), pch = 16)
-```
+
+
+
+
+
+
+
+
+
