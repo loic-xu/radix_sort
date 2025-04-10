@@ -498,36 +498,35 @@ benchmark_radix <- function(n, nbSimus = 50) {
 }
 
 # Valeurs de n
-n_values <- seq(1000, 50000, by = 5000)
+n_values <- seq(1000, 50100, by = 5000)
 
 # Exécution des benchmarks pour chaque valeur de n
-results <- sapply(n_values, function(n) benchmark_radix(n), simplify = "data.frame")
+results <- t(sapply(n_values, function(n) benchmark_radix(n)))
 
 # Conversion en data.frame avec n comme colonne
 df_results <- data.frame(
   n = n_values,
-  radix_R = results[1, ],  # Moyenne des temps pour Radix Sort (R)
-  radix_Rcpp = results[2, ]  # Moyenne des temps pour Radix Sort (Rcpp)
+  radix_R = results[, 1],  # Moyenne des temps pour Radix Sort (R)
+  radix_Rcpp = results[, 2]  # Moyenne des temps pour Radix Sort (Rcpp)
 )
 
-# Calcul du rapport Rcpp / R
-df_results$Rcpp_R_ratio <- df_results$radix_Rcpp / df_results$radix_R
 
 # Tracer les courbes
 library(ggplot2)
-# Afficher le premier graphique dans une fenêtre
-print(p1)
 
-# Tracer le deuxième graphique (Rapport Rcpp / R)
-p2 <- ggplot(df_results, aes(x = n, y = Rcpp_R_ratio)) +
-  geom_line(color = "blue", size = 1) +
-  labs(title = "Rapport des Temps Rcpp / R",
+# Tracer le graphique pour les temps d'exécution de Radix Sort (R vs Rcpp)
+p1 <- ggplot(df_results, aes(x = n)) +
+  geom_line(aes(y = radix_R, color = "Radix Sort (R)"), size = 1) +
+  geom_line(aes(y = radix_Rcpp, color = "Radix Sort (Rcpp)"), size = 1) +
+  labs(title = "Temps d'exécution de Radix Sort : R vs Rcpp",
        x = "Taille des données (n)",
-       y = "Temps Rcpp / Temps R") +
+       y = "Temps moyen (secondes)") +
+  scale_color_manual(values = c("red", "blue")) +
   theme_minimal()
 
-# Afficher le deuxième graphique dans une autre fenêtre
-print(p2)
+# Afficher le graphique des temps d'exécution
+print(p1)
+
 
 ```
 

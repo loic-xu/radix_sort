@@ -1,6 +1,6 @@
-#' Radix Sort Algorithm
+#' Radix Sort Algorithm (Positives Only)
 #' 
-#' This function sorts a numeric vector using the Radix Sort algorithm.
+#' This function sorts a numeric vector containing only positive numbers using the Radix Sort algorithm.
 #' The function iterates over each digit of the numbers and uses counting sort as a subroutine.
 #'
 #' @param vec A numeric vector to be sorted.
@@ -12,19 +12,17 @@ radix_sort <- function(vec) {
     return(vec)
   }
   
-  # Séparer les valeurs négatives et positives
-  negative_vals <- vec[vec < 0]
-  positive_vals <- vec[vec >= 0]
+  # Déterminer le nombre maximal d'itérations en fonction du nombre de chiffres
+  max_val <- max(vec)  # Juste pour les nombres positifs
+  exp <- 1  # L'exposant de départ, représentant les unités
   
-  # Trier d'abord les valeurs absolues
-  sorted_positive <- counting_sort(abs(positive_vals), 1)
-  sorted_negative <- counting_sort(abs(negative_vals), 1)
+  # Appliquer counting_sort sur chaque chiffre (de l'unité aux plus grandes puissances de 10)
+  while (max_val %/% exp > 0) {
+    vec <- counting_sort(vec, exp)
+    exp <- exp * 10  # Passer à l'exposant suivant
+  }
   
-  # Réorganiser les résultats pour avoir les négatifs avant les positifs
-  sorted_negative <- rev(sorted_negative)  # Les valeurs négatives doivent être triées dans l'ordre décroissant
-  
-  # Combiner les résultats avec les négatifs en premier
-  return(c(-sorted_negative, sorted_positive))
+  return(vec)
 }
 
 #' Counting Sort as a Subroutine for Radix Sort
@@ -51,7 +49,7 @@ counting_sort <- function(vec, exp) {
   }
   
   # Construire le vecteur de sortie avec les éléments triés par le chiffre actuel
-  for (i in seq(n, 1)) {
+  for (i in rev(seq_len(n))) {  # Traverse de droite à gauche pour maintenir la stabilité
     index <- (vec[i] %/% exp) %% 10
     output[count[index + 1]] <- vec[i]
     count[index + 1] <- count[index + 1] - 1
