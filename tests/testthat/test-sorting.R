@@ -1,8 +1,8 @@
 library(testthat)
-library(M2algorithmique)
+library(Radix_Sort)
 
 library(testthat)
-library(M2algorithmique)
+library(Radix_Sort)
 
 #Tests fonctions R
 

@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(M2algorithmique)
+library(Radix_Sort)
 
-test_check("M2algorithmique")
+test_check("Radix_Sort")
