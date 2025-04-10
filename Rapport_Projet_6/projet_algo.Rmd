@@ -780,63 +780,17 @@ for (df_long in df_long_list) {
 
 
 
-
-
-
 **Conclusion**
 
+Dans cette seconde approche, nous avons choisi \( n = 1000 \), ce qui, théoriquement, devrait faire croiser les courbes des deux algorithmes lorsque \( k = 6 \). Cependant, les résultats montrent que les courbes se croisent plusieurs fois, tant avant qu'après \( k = 6 \).
 
+Cela suggère que la relation entre \( n \) et \( k \) est plus complexe que prévu. En conséquence, cette seconde approche se révèle plus concluante, car elle permet de constater que les courbes se croisent à des valeurs spécifiques de \( n \) et \( k \), mais pas de manière aussi simple que la théorie le suggère.
 
-
-
-
+Pour que les courbes de **Merge Sort** et **Radix Sort** se croisent, il semble nécessaire que la taille des données soit relativement petite, inférieure à 2 500. De plus, plus \( n \) est grand, plus \( k \) doit également être élevé pour que les deux algorithmes aient des performances comparables.
 
 
 
 ## Evaluation de la complexité
-
-Cette fonction calcule le temps d'exécution moyen et l'écart type pour plusieurs tailles de données n.
-
-
-```{r}
-
-
-
-
-
-```
-
-
-
-
-Les données de benchmark sont calculées pour différentes tailles de données, stockées dans vector_n_radix.
-```{r}
-
-
-
-```
-
-
-Ensuite, une régression linéaire est effectuée sur les données de temps (mean_time) par rapport à la taille des données (n), mais sur une échelle logarithmique, pour obtenir la pente, qui représente la complexité de l'algorithme.
-
-```{r}
-
-
-```
-
-
-
-**Conclusion**
-
-
-**a faire**
-
-
-
-# Comparaison de la complexité linéaire avec la complexité log-linéaire
-
-
-
 
 
 ```{r}
@@ -881,7 +835,6 @@ cat("Pente Radix Sort :", round(slope_radix, 4), "\n")
 
 On compare maintenant les deux algorithmes sur le même graphe :
 
-
 ```{r}
 
 # Fusion des résultats avec un identifiant d'algorithme
@@ -909,5 +862,75 @@ ggplot(res_all, aes(x = n, y = mean_time, color = algo)) +
 
 
 **Conclusion**
+
+***Analyse des Pentes***
+
+Les pentes des courbes de régression pour les deux algorithmes offrent un aperçu intéressant de leur complexité respective. 
+
+- **Tri par base (Radix Sort)** : La pente de \(2 \times 10^{-6}\) suggère que l'algorithme a une complexité plus proche de la linéaire, car le temps d'exécution augmente de manière relativement constante avec la taille de l'entrée.
+  
+- **Tri fusion (Merge Sort)** : La pente de \(4 \times 10^{-7}\) indique que l'algorithme a une complexité qui croît plus lentement. Cela est cohérent avec une complexité de type \(O(n \log n)\), où le terme logarithmique ralentit la croissance du temps d'exécution par rapport à une complexité purement linéaire.
+
+***Distinction entre Complexité Linéaire et Log-Linéaire***
+
+La question de savoir si l'on peut distinguer la complexité linéaire de la complexité log-linéaire se répond positivement à partir des données et des pentes des courbes de régression.
+
+- **Tri par base** : La pente plus élevée (\(2 \times 10^{-6}\)) indique que le temps d'exécution augmente plus rapidement avec la taille de l'entrée, ce qui est typique d'une complexité linéaire.
+  
+- **Tri fusion** : La pente plus faible (\(4 \times 10^{-7}\)) suggère une croissance plus lente du temps d'exécution, ce qui est caractéristique d'une complexité \(O(n \log n)\).
+
+***Observation des Courbes***
+
+- La courbe du **tri par base** est plus régulière et montre une augmentation constante du temps d'exécution, ce qui est typique d'une complexité linéaire.
+  
+- La courbe du **tri fusion** présente des fluctuations et une croissance non linéaire, caractéristiques de la complexité \(O(n \log n)\).
+
+
+Les différences observées dans les pentes et les comportements des courbes permettent de distinguer clairement la complexité linéaire de la complexité log-linéaire pour les algorithmes étudiés. Le tri par base présente une complexité linéaire, tandis que le tri fusion suit une complexité log-linéaire, ce qui confirme la théorie et les observations expérimentales.
+
+# Conclusion du Projet
+
+Dans ce projet, nous avons exploré et comparé les performances de différents algorithmes de tri, en mettant un accent particulier sur le **Radix Sort** et le **Merge Sort**. Nous avons analysé leurs complexités théoriques et leurs comportements pratiques à travers divers jeux de données et tailles d'entrée.
+
+## Résultats Clés
+
+### Complexité Théorique vs. Pratique
+
+- **Radix Sort** : Ce dernier a montré une complexité proche de la linéaire, ce qui le rend particulièrement efficace pour des jeux de données de taille modérée ou lorsque les données suivent certaines distributions. 
+- **Merge Sort** : Avec sa complexité \(O(n \log n)\), cet algorithme s'est avéré plus performant pour des ensembles de données de grande taille ou dans des situations générales.
+
+### Comparaison des Implémentations
+
+- **Optimisation en C++ (via Rcpp)** : Les implémentations en C++ ont été significativement plus rapides que celles en R. Cela souligne l'importance de l'optimisation des performances dans les tâches computationnelles intensives.
+- **Radix Sort en C++** : En C++, le Radix Sort a été environ **27 fois plus rapide** que sa version en R, démontrant l'efficacité de l'optimisation en C++.
+
+### Analyse des Pentes et des Courbes
+
+- Les **pentes des courbes de régression** ont permis de distinguer clairement la complexité linéaire de la complexité log-linéaire.
+  - **Radix Sort** a montré une pente plus élevée, ce qui indique une complexité proche de la linéaire.
+  - **Merge Sort** a présenté une pente plus faible, typique d'une complexité \(O(n \log n)\).
+
+## Perspectives
+
+### Étude de Cas Supplémentaires
+
+- Analyser les performances des algorithmes sur des **jeux de données réels** et plus variés afin de mieux comprendre leur comportement dans des contextes pratiques.
+
+### Développement de Nouveaux Algorithmes
+
+- Investiguer de nouveaux algorithmes de tri qui pourraient offrir des performances supérieures dans des cas spécifiques, en combinant les avantages des approches comparatives et non comparatives.
+
+### Ajout d'Algorithmes en \(O(n \log n)\), tels que le Quick Sort
+
+- Ajouter le **Quick Sort**, un algorithme de tri basé sur le principe du pivotage, qui est souvent plus rapide que le Merge Sort en pratique grâce à ses faibles constantes dans des cas moyens. Comparer sa performance avec les autres algorithmes existants.
+
+### Ajout du MSD (Most Significant Digit) Radix Sort
+
+- Étudier l'**ajout de l'algorithme MSD Radix Sort**, qui, contrairement à l'algorithme LSD (Least Significant Digit), trie les données à partir du chiffre le plus significatif. Cela pourrait améliorer les performances dans certains scénarios de données spécifiques.
+
+
+## Conclusion Générale
+
+Ce projet a non seulement permis de comparer et d'analyser les performances de différents algorithmes de tri, mais il a également mis en lumière l'importance de l'optimisation et de l'adaptation des algorithmes aux besoins spécifiques des applications réelles. Les perspectives ouvertes par cette étude offrent de nombreuses opportunités pour des recherches et des développements futurs dans le domaine de l'algorithmique et de la science des données.
 
 
