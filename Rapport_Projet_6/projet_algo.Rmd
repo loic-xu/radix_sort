@@ -152,13 +152,6 @@ mean(time5)/mean(time6) #Heat
 
 ```
 
-Gain fusion versus rapide
-
-```{r}
-mean(time1)/mean(time3)
-mean(time2)/mean(time4)
-```
-
 Gain fusion versus tas
 
 ```{r}
@@ -166,12 +159,6 @@ mean(time1)/mean(time5)
 mean(time2)/mean(time6)
 ```
 
-Gain rapide versus tas
-
-```{r}
-mean(time3)/mean(time5)
-mean(time4)/mean(time6)
-```
 
 On recommence avec `n = 20000`.
 
@@ -193,6 +180,70 @@ mean(time5)/mean(time6)
 ```
 
 
+On peut aussi visualiser ces résultats :
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Préparer les données en format long pour ggplot2
+df_merge <- data.frame(
+  Implémentation = rep(c("merge_sort (R)", "merge_sort_Rcpp"), each = nbSimus),
+  Temps = c(time1, time2)
+)
+
+df_heap <- data.frame(
+  Implémentation = rep(c("heap_sort (R)", "heap_sort_Rcpp"), each = nbSimus),
+  Temps = c(time5, time6)
+)
+```
+
+
+
+
+
+```{r}
+# Graphe 1 : Merge Sort
+ggplot(df_merge, aes(x = Implémentation, y = Temps, fill = Implémentation)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Temps d'exécution : Merge Sort (R vs Rcpp)",
+       y = "Temps (en secondes)", x = "") +
+  scale_fill_manual(values = c("#FFA07A", "#20B2AA")) +
+  theme(legend.position = "none")
+```
+
+
+
+```{r}
+# Graphe 2 : Heap Sort
+ggplot(df_heap, aes(x = Implémentation, y = Temps, fill = Implémentation)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Temps d'exécution : Heap Sort (R vs Rcpp)",
+       y = "Temps (en secondes)", x = "") +
+  scale_fill_manual(values = c("#9370DB", "#3CB371")) +
+  theme(legend.position = "none")
+
+
+```
+
+
+```{r}
+df_avg <- data.frame(
+  Algo = c("Merge R", "Merge Rcpp", "Heap R", "Heap Rcpp"),
+  Temps = c(mean(time1), mean(time2), mean(time5), mean(time6))
+)
+
+ggplot(df_avg, aes(x = Algo, y = Temps, group = 1)) +
+  geom_line(color = "steelblue", size = 1.2) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  labs(title = "Temps moyen d'exécution (R vs Rcpp)",
+       y = "Temps (secondes)", x = "Algorithme")
+
+
+```
 
 **Conclusion:**
 
@@ -290,7 +341,8 @@ benchmark_sorting <- function(n, times = 50) {
 }
 
 # Exécution des benchmarks pour différentes tailles de n
-n_values <- c(500, 1000, 3000, 5000, 7000, 9000, 11000)
+n_values <- seq(100, 50100, by = 5000)  # Tester de 100 à 50000 avec un pas de 5000
+
 results <- lapply(n_values, benchmark_sorting)
 
 # Combiner les résultats dans un seul dataframe avec n comme identifiant

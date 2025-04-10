@@ -1,9 +1,6 @@
 library(testthat)
 library(RadixSort)
 
-library(testthat)
-library(RadixSort)
-
 #Tests fonctions R
 
 test_that("Tri Radix R fonctionne correctement", {
