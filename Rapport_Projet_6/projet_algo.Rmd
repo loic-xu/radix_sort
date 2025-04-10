@@ -92,9 +92,9 @@ On va faire des comparaisons pour les deux types d'algorithme en R et C++ pour q
 La fonction `one.simu.time` retourne le temps recherché, et `one.simu` sera utilisé par `microbenchmark`
 
 ```{r}
-one.simu.time <- function(n, type = "sample", func = "merge_sort")
+one.simu.time <- function(n, v, func = "merge_sort")
 {
-  if(type == "sample"){v <- sample(n)}else{v <- n:1}
+
   if(func == "merge_sort"){t <- system.time(merge_sort(v))[[3]]}
   if(func == "heap_sort"){t <- system.time(heap_sort(v))[[3]]} 
   if(func == "merge_sort_Rcpp"){t <- system.time(merge_sort_Rcpp(v))[[3]]}
@@ -103,10 +103,8 @@ one.simu.time <- function(n, type = "sample", func = "merge_sort")
   return(t)
 }
 
-one.simu <- function(n, type = "sample", func = "merge_sort")
+one.simu <- function(n, v, func = "merge_sort")
 {
-  if(type == "sample"){v <- sample(n)}else{v <- n:1}
-  
   if(func == "merge_sort"){merge_sort(v)}
   if(func == "heap_sort"){heap_sort(v)} 
   if(func == "merge_sort_Rcpp"){merge_sort_Rcpp(v)}
@@ -120,10 +118,11 @@ Sur un exemple, on obtient :
 
 ```{r}
 n <- 10000
-one.simu.time(n, func = "merge_sort")
-one.simu.time(n, func = "heap_sort")
-one.simu.time(n, func = "merge_sort_Rcpp")
-one.simu.time(n, func = "heap_sort_Rcpp")
+v <- sample(n)
+one.simu.time(n, v, func = "merge_sort")
+one.simu.time(n, v, func = "heap_sort")
+one.simu.time(n, v, func = "merge_sort_Rcpp")
+one.simu.time(n, v, func = "heap_sort_Rcpp")
 ```
 
 ## Simulations avec répétitions
@@ -138,10 +137,10 @@ time3 <- rep(0, nbSimus); time4 <- rep(0, nbSimus);
 time5 <- rep(0, nbSimus); time6 <- rep(0, nbSimus);
 
 
-for(i in 1:nbSimus){time1[i] <- one.simu.time(n, func = "merge_sort")}
-for(i in 1:nbSimus){time2[i] <- one.simu.time(n, func = "merge_sort_Rcpp")}
-for(i in 1:nbSimus){time5[i] <- one.simu.time(n, func = "heap_sort")}
-for(i in 1:nbSimus){time6[i] <- one.simu.time(n, func = "heap_sort_Rcpp")}
+for(i in 1:nbSimus){time1[i] <- one.simu.time(n, v, func = "merge_sort")}
+for(i in 1:nbSimus){time2[i] <- one.simu.time(n, v, func = "merge_sort_Rcpp")}
+for(i in 1:nbSimus){time5[i] <- one.simu.time(n, v, func = "heap_sort")}
+for(i in 1:nbSimus){time6[i] <- one.simu.time(n, v, func = "heap_sort_Rcpp")}
 ```
 
 Gain C++ versus R
@@ -167,12 +166,13 @@ n <- 20000
 nbSimus <- 10
 time1 <- rep(0, nbSimus); time2 <- rep(0, nbSimus);
 time5 <- rep(0, nbSimus); time6 <- rep(0, nbSimus);
+v <- sample(n)
 
 
-for(i in 1:nbSimus){time1[i] <- one.simu.time(n, func = "merge_sort")}
-for(i in 1:nbSimus){time2[i] <- one.simu.time(n, func = "merge_sort_Rcpp")}
-for(i in 1:nbSimus){time5[i] <- one.simu.time(n, func = "heap_sort")}
-for(i in 1:nbSimus){time6[i] <- one.simu.time(n, func = "heap_sort_Rcpp")}
+for(i in 1:nbSimus){time1[i] <- one.simu.time(n, v, func = "merge_sort")}
+for(i in 1:nbSimus){time2[i] <- one.simu.time(n, v, func = "merge_sort_Rcpp")}
+for(i in 1:nbSimus){time5[i] <- one.simu.time(n, v, func = "heap_sort")}
+for(i in 1:nbSimus){time6[i] <- one.simu.time(n, v, func = "heap_sort_Rcpp")}
 
 
 mean(time1)/mean(time2) 
@@ -274,8 +274,9 @@ library(ggplot2)
 benchmark_sorting <- function(n, times = 70)
 {
   microbenchmark(
-    merge_sort = one.simu(n, func = "merge_sort_Rcpp"),
-    heap_sort = one.simu(n, func = "heap_sort_Rcpp"),
+    v <- sample(n)
+    merge_sort = one.simu(n, v, func = "merge_sort_Rcpp"),
+    heap_sort = one.simu(n, v, func = "heap_sort_Rcpp"),
     times = times,
     control = list(gc = FALSE)
   )
@@ -329,8 +330,9 @@ library(microbenchmark)
 benchmark_sorting <- function(n, times = 50) {
   # Exécution des benchmarks avec microbenchmark
   result <- microbenchmark(
-    merge_sort = one.simu(n, func = "merge_sort_Rcpp"),
-    heap_sort = one.simu(n, func = "heap_sort_Rcpp"),
+    v <- sample(n)
+    merge_sort = one.simu(n, v, func = "merge_sort_Rcpp"),
+    heap_sort = one.simu(n, v, func = "heap_sort_Rcpp"),
     times = times,
     control = list(gc = FALSE)
   )
@@ -421,13 +423,12 @@ Dans le meilleur des cas, si **k** est suffisamment petit (par exemple, pour les
 
 ## Limites avec R et C++
 
-Dans cette partie, on redéfini 'one.sime.time' et 'one.simu' mais cette fois avec radix sort, et on garde Merge sort car nous en aurons besoin dans la suite de l'étude.
+Dans cette partie, on redéfini 'one.simu.time' et 'one.simu' mais cette fois avec radix sort, et on garde Merge sort car nous en aurons besoin dans la suite de l'étude.
 
 ```{r}
 
-one.simu.time <- function(n, type = "sample", func = "radix_sort")
+one.simu.time <- function(n, v, func = "radix_sort")
 {
-  if(type == "sample"){v <- sample(n)}else{v <- n:1}
   if(func == "radix_sort"){t <- system.time(radix_sort(v))[[3]]}
   if(func == "merge_sort"){t <- system.time(merge_sort(v))[[3]]}
   if(func == "radix_sort_Rcpp"){t <- system.time(radix_sort_Rcpp(v))[[3]]}
@@ -436,10 +437,9 @@ one.simu.time <- function(n, type = "sample", func = "radix_sort")
   return(t)
 }
 
-one.simu <- function(n, type = "sample", func = "radix_sort")
+one.simu <- function(n, v, func = "radix_sort")
 {
-  if(type == "sample"){v <- sample(n)}else{v <- n:1}
-  
+
   if(func == "radix_sort"){merge_sort(v)}
   if(func == "merge_sort"){merge_sort(v)}
   if(func == "radix_sort_Rcpp"){merge_sort_Rcpp(v)}
@@ -456,8 +456,10 @@ Comme précédement, on fait le test sur un exemple :
 
 ```{r}
 n <- 10000
-one.simu.time(n, func = "radix_sort")
-one.simu.time(n, func = "radix_sort_Rcpp")
+v <- sample(n)
+
+one.simu.time(n, v, func = "radix_sort")
+one.simu.time(n, v, func = "radix_sort_Rcpp")
 ```
 
 
@@ -469,10 +471,11 @@ On reproduit ces comparaisons de manière plus robuste:
 nbSimus <- 10
 
 time1 <- rep(0, nbSimus); time2 <- rep(0, nbSimus);
+v <- sample(n)
 
 
-for(i in 1:nbSimus){time1[i] <- one.simu.time(n, func = "radix_sort")}
-for(i in 1:nbSimus){time2[i] <- one.simu.time(n, func = "radix_sort_Rcpp")}
+for(i in 1:nbSimus){time1[i] <- one.simu.time(n, v, func = "radix_sort")}
+for(i in 1:nbSimus){time2[i] <- one.simu.time(n, v, func = "radix_sort_Rcpp")}
 
 mean(time1)/mean(time2) 
 
@@ -485,12 +488,12 @@ On affiche la courbe de tps (C++) / tps (R) ainsi qu'une autre courbe avec les d
 benchmark_radix <- function(n, nbSimus = 50) {
   time1 <- rep(0, nbSimus)
   time2 <- rep(0, nbSimus)
-  
+  v <- sample(n)
   for(i in 1:nbSimus) {
-    time1[i] <- one.simu.time(n, func = "radix_sort")
+    time1[i] <- one.simu.time(n, v, func = "radix_sort")
   }
   for(i in 1:nbSimus) {
-    time2[i] <- one.simu.time(n, func = "radix_sort_Rcpp")
+    time2[i] <- one.simu.time(n, v, func = "radix_sort_Rcpp")
   }
   
   # Retourner la moyenne des temps d'exécution
