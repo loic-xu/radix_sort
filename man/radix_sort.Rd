@@ -2,7 +2,7 @@
 % Please edit documentation in R/radix_sort.R
 \name{radix_sort}
 \alias{radix_sort}
-\title{Radix Sort Algorithm}
+\title{Radix Sort Algorithm (Positives Only)}
 \usage{
 radix_sort(vec)
 }
@@ -13,6 +13,6 @@ radix_sort(vec)
 A sorted numeric vector.
 }
 \description{
-This function sorts a numeric vector using the Radix Sort algorithm.
+This function sorts a numeric vector containing only positive numbers using the Radix Sort algorithm.
 The function iterates over each digit of the numbers and uses counting sort as a subroutine.
 }
