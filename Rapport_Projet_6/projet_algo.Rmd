@@ -273,8 +273,8 @@ library(ggplot2)
 # Function to run benchmark
 benchmark_sorting <- function(n, times = 70)
 {
+  v <- sample(n)
   microbenchmark(
-    v <- sample(n)
     merge_sort = one.simu(n, v, func = "merge_sort_Rcpp"),
     heap_sort = one.simu(n, v, func = "heap_sort_Rcpp"),
     times = times,
